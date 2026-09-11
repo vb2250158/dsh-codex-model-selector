@@ -9,7 +9,7 @@
  * card; the in-menu strip with Retry remains the catalog-load surface.
  */
 import {
-  useEffect, useId, useMemo, useRef, useState, useSyncExternalStore,
+  useDeferredValue, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore,
   type KeyboardEvent, type FocusEvent,
 } from 'react'
 import clsx from 'clsx'
@@ -50,6 +50,7 @@ export function ModelSelect(
   const dragging = useRef(false)
   const [effortDraft, setEffortDraft] = useState<number | null>(null)
   const [pane, setPane] = useState<Pane>('root')
+  const [searchQuery, setSearchQuery] = useState('')
   const [speed, updateSpeed] = useState<{ visible: boolean; tier: string } | null>(null)
   const [speedBusy, setSpeedBusy] = useState(false)
   const speedRef = useRef(loadSpeed)
@@ -70,6 +71,7 @@ export function ModelSelect(
   const toastSeq = useRef(0)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
+  const modelSearchRef = useRef<HTMLInputElement | null>(null)
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
   const id = useId()
 
@@ -89,6 +91,17 @@ export function ModelSelect(
     ? -1
     : choices.findIndex(c => c.selection.provider === state.current?.provider && c.selection.model === state.current.model)
   const currentChoice = choices[selectedIndex]
+  const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLocaleLowerCase())
+  const filteredGroups = useMemo(() => {
+    if (deferredSearchQuery === '') return state.groups
+    return state.groups.flatMap(group => {
+      const providerMatches = `${group.id} ${group.name}`.toLocaleLowerCase().includes(deferredSearchQuery)
+      const models = providerMatches
+        ? group.models
+        : group.models.filter(model => `${model.id} ${model.name}`.toLocaleLowerCase().includes(deferredSearchQuery))
+      return models.length === 0 ? [] : [{ ...group, models }]
+    })
+  }, [deferredSearchQuery, state.groups])
   const reasoning = currentChoice?.model.reasoning
   const effectiveEffort = state.current?.reasoningEffort ?? reasoning?.defaultEffort
   const effortLabel = reasoning === undefined
@@ -125,10 +138,15 @@ export function ModelSelect(
     return () => { document.removeEventListener('mousedown', closeOutside) }
   }, [open])
 
+  useEffect(() => {
+    if (open && pane === 'model') modelSearchRef.current?.focus()
+  }, [open, pane])
+
   if (!available) return null
 
   const show = (): void => {
     setPane('root')
+    setSearchQuery('')
     setOpen(true)
     reload()
   }
@@ -148,6 +166,13 @@ export function ModelSelect(
   }
 
   const onRootKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.target === modelSearchRef.current) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setPane('root')
+      }
+      return
+    }
     if (event.key === 'Escape' && open) {
       event.preventDefault()
       // Escape backs out of a drilled pane first, then closes.
@@ -318,8 +343,18 @@ export function ModelSelect(
                   <button type="button" className={css.retry} onClick={reload}>{t('retry')}</button>
                 </div>
               ))}
+              <input
+                ref={modelSearchRef}
+                className={css.search}
+                type="search"
+                value={searchQuery}
+                placeholder="搜索模型"
+                aria-label="搜索模型"
+                disabled={busy}
+                onChange={(event) => { setSearchQuery(event.currentTarget.value) }}
+              />
               <div className={clsx(css.groups, 'scrollable')}>
-                {state.groups.map((group) => {
+                {filteredGroups.map((group) => {
                   const headingId = `${id}-${group.id}`
                   return (
                     <section role="group" aria-labelledby={headingId} className={css.group} key={group.id}>
@@ -353,6 +388,9 @@ export function ModelSelect(
               </div>
               {state.status === 'ready' && choices.length === 0 && (
                 <div className={css.empty}>{t('empty.models')}</div>
+              )}
+              {state.status === 'ready' && choices.length > 0 && filteredGroups.length === 0 && (
+                <div className={css.empty} role="status">没有匹配的模型。</div>
               )}
             </>
           )}

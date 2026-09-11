@@ -1,6 +1,6 @@
 # DSH Codex Model Selector
 
-独立的模型选择器样式插件。紧凑卡片包含模型入口、推理等级分档滑条及默认等级重置；模型和等级列表仍来自官方 `modelDirectories` 服务。选择经原有接口保存，不另建配置数据源。
+独立的模型选择器样式插件。紧凑卡片包含模型入口、推理等级分档滑条及默认等级重置；模型列表支持按提供方或模型的名称和 ID 本地搜索，模型和等级数据仍来自官方 `modelDirectories` 服务。选择经原有接口保存，不另建配置数据源。
 
 安装：`dsh plugin --profile web add github:vb2250158/dsh-codex-model-selector#<commit>`，重启 DSH 并刷新页面。禁用插件会释放模型槽和样式，恢复官方选择器。无需修改官方源码。
 

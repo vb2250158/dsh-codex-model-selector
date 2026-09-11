@@ -141,6 +141,28 @@
   cursor: pointer;
 }
 
+.search {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  margin: 2px 0 4px;
+  padding: 5px 8px;
+  border: 0.5px solid var(--dsw-alias-border-l4);
+  border-radius: 8px;
+  outline: none;
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+}
+
+.search::placeholder {
+  color: var(--dsw-alias-label-dimmed);
+}
+
+.search:focus-visible {
+  border-color: var(--dsw-alias-brand-primary);
+}
+
 .groups {
   min-height: 0;
   overflow-y: auto;

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 - 2026-09-11
+
+- Add local provider/model search to the model list.
+
 ## 0.1.1 - 2026-09-09
 
 - Publish the existing local plugin as an independent MIT Git repository.

@@ -208,6 +208,43 @@ describe('ModelSelect reasoning effort', () => {
     expect(screen.queryByText('Fast catalog description')).toBeNull()
   })
 
+  it('filters loaded provider groups by model or provider name', () => {
+    const directory = createSnapshotStore(state({
+      groups: [{
+        id: 'openai',
+        name: 'OpenAI',
+        models: [{ id: 'gpt-5-6-terra', name: 'GPT-5.6-Terra' }],
+      }, {
+        id: 'grok',
+        name: 'Grok',
+        models: [{ id: 'grok-4', name: 'Grok 4' }],
+      }],
+    }))
+    render(<ModelSelect
+      locked={false}
+      available
+      directory={directory}
+      load={vi.fn()}
+      select={vi.fn().mockResolvedValue(true)}
+      t={t}
+    />)
+
+    fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /模型/ }))
+    const search = screen.getByRole('searchbox', { name: '搜索模型' })
+    expect(document.activeElement).toBe(search)
+    fireEvent.change(search, { target: { value: 'terra' } })
+    expect(screen.getByRole('menuitemradio', { name: 'GPT-5.6-Terra' })).toBeTruthy()
+    expect(screen.queryByRole('menuitemradio', { name: 'Grok 4' })).toBeNull()
+
+    fireEvent.change(search, { target: { value: 'grok' } })
+    expect(screen.getByRole('menuitemradio', { name: 'Grok 4' })).toBeTruthy()
+    expect(screen.queryByRole('menuitemradio', { name: 'GPT-5.6-Terra' })).toBeNull()
+
+    fireEvent.change(search, { target: { value: 'missing' } })
+    expect(screen.getByRole('status').textContent).toBe('没有匹配的模型。')
+  })
+
   it('shows loading until the catalog and Session projection are both ready', async () => {
     const directory = createSnapshotStore<ModelDirectoryState>(state({
       current: null,
