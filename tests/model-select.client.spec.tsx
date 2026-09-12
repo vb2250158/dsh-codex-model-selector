@@ -75,7 +75,11 @@ describe('ModelSelect reasoning effort', () => {
     const slider = screen.getByRole('slider')
     fireEvent.pointerDown(slider)
     fireEvent.change(slider, { target: { value: '0' } })
+    expect(screen.getByRole('menuitem', { name: /模型/ }).textContent).toContain('Off')
+    expect(slider.getAttribute('aria-valuetext')).toBe('Off')
     fireEvent.change(slider, { target: { value: '2' } })
+    expect(screen.getByRole('menuitem', { name: /模型/ }).textContent).toContain('Max')
+    expect(slider.getAttribute('aria-valuetext')).toBe('Max')
     expect(select).not.toHaveBeenCalled()
     fireEvent.pointerUp(slider)
     fireEvent.blur(slider, { relatedTarget: null })
@@ -119,39 +123,14 @@ describe('ModelSelect reasoning effort', () => {
     expect(select).toHaveBeenLastCalledWith({ provider: 'deepseek-official', model: 'deepseek-v4-flash', reasoningEffort: 'high' })
   })
 
-  it('renders effort names without descriptions and submits the effort as part of the session selection', async () => {
+  it.each(['High', 'DeepSeek-V4-Flash'])('opens models from either heading line: %s', label => {
     const directory = createSnapshotStore<ModelDirectoryState>(state())
-    const select = vi.fn(async (selection: ModelSelection) => {
-      directory.set(state({ current: selection }))
-      return true
-    })
-    render(<ModelSelect
-      locked={false}
-      available
-      directory={directory}
-      load={vi.fn()}
-      select={select}
-      t={t}
-    />)
-
-    const trigger = screen.getByRole('button', {
-      name: '选择模型，当前 DeepSeek-V4-Flash，推理等级 High',
-    })
-    fireEvent.click(trigger)
-    fireEvent.click(screen.getByRole('menuitem', { name: /推理等级/ }))
-    expect(screen.getAllByRole('menuitemradio').map(item => item.textContent))
-      .toEqual(['Off', 'High', 'Max'])
-    expect(screen.queryByText('Largest budget')).toBeNull()
-
-    fireEvent.click(screen.getByRole('menuitemradio', { name: /Max/ }))
-    await waitFor(() => {
-      expect(select).toHaveBeenCalledWith({
-        provider: 'deepseek-official',
-        model: 'deepseek-v4-flash',
-        reasoningEffort: 'max',
-      })
-      expect(trigger.getAttribute('aria-label')).toBe('选择模型，当前 DeepSeek-V4-Flash，推理等级 Max')
-    })
+    render(<ModelSelect locked={false} available directory={directory} load={vi.fn()} select={vi.fn()} t={t} />)
+    fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+    const heading = screen.getByRole('menuitem', { name: /模型/ })
+    fireEvent.click(Array.from(heading.querySelectorAll('span')).find(span => span.textContent === label)!)
+    expect(screen.getByRole('menuitemradio', { name: 'DeepSeek-V4-Flash' })).toBeTruthy()
+    expect(screen.queryByRole('menuitemradio', { name: 'Max' })).toBeNull()
   })
 
   it('offers provider default only when the adapter does not configure a model default', () => {
@@ -179,9 +158,8 @@ describe('ModelSelect reasoning effort', () => {
     fireEvent.click(screen.getByRole('button', {
       name: '选择模型，当前 Model，推理等级 Default',
     }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /推理等级/ }))
-    expect(screen.getAllByRole('menuitemradio').map(item => item.textContent))
-      .toEqual(['Default', 'Standard'])
+    expect(screen.getByRole('slider').getAttribute('max')).toBe('1')
+    expect(screen.getByRole('slider').getAttribute('aria-valuetext')).toBe('Default')
   })
 
   it('shows the durable model id when the catalog has no matching display name', () => {

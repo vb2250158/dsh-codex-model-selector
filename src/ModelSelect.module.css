@@ -291,9 +291,9 @@
 .effortCard { width: 246px; max-width: calc(100vw - 48px); padding: 7px 8px 10px; }
 .cardHeading { display: grid; grid-template-columns: 24px 1fr 24px; align-items: center; min-height: 22px; }
 .energyIcon { color: var(--dsw-alias-label-tertiary); font-size: 23px; line-height: 1; }
-.effortCaption, .modelCaption, .resetEffort { border: none; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 2px; font: inherit; }
+.modelHeading, .effortCaption, .modelCaption, .resetEffort { border: none; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 2px; font: inherit; }
 .effortCaption { color: var(--dsw-alias-brand-primary); font-size: 12px; }
-.modelCaption { width: 100%; font-size: 12px; line-height: 18px; margin: 2px 0 12px; }
+.modelCaption { width: 100%; font-size: 12px; line-height: 18px; margin: 2px 0 0; }
 .resetEffort { font-size: 20px; color: var(--dsw-alias-label-tertiary); }
 .resetEffort:disabled { opacity: .4; cursor: default; }
 .effortTrack { position: relative; height: 24px; margin: 0 3px; border-radius: 20px; background: var(--dsw-alias-interactive-bg-hover); }
@@ -308,3 +308,7 @@
 .fastButton { width: 24px; height: 24px; display: grid; place-items: center; padding: 0; background: transparent; border: none; color: var(--dsw-alias-label-secondary); cursor: pointer; }
 .fastButton[aria-pressed="true"] { color: var(--dsw-alias-brand-primary); }
 .fastButton:disabled { opacity: .35; cursor: default; }
+
+.modelHeading { flex-direction: column; gap: 0; width: 100%; padding: 2px 8px; min-height: 44px; }
+.modelHeading:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); border-radius: 6px; }
+.cardHeading { margin-bottom: 12px; }

@@ -23,7 +23,7 @@ import type { ModelSelectInjected } from '@deepseek-ai/dsh-client-ui-model-selec
 import css from './ModelSelect.module.css'
 
 /** Which pane the dropdown shows: the two-row root or one drilled-in list. */
-type Pane = 'root' | 'model' | 'effort'
+type Pane = 'root' | 'model'
 
 /** One dynamic effort row; undefined means preserve the provider default. */
 interface EffortChoice {
@@ -123,6 +123,7 @@ export function ModelSelect(
     ], [reasoning, t])
   const busy = state.status === 'selecting'
   const effortIndex = Math.max(0, effortChoices.findIndex(choice => choice.effort === effectiveEffort))
+  const previewEffortLabel = effortDraft === null ? effortLabel : effortChoices[effortDraft]?.label
 
   const reload = (): void => {
     lastActionRef.current = 'load'
@@ -299,15 +300,17 @@ export function ModelSelect(
                     else { toastSeq.current += 1; setToast({ seq: toastSeq.current, text: '快速模式切换失败，请重试' }) }
                   }).finally(() => setSpeedBusy(false))
                 }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7l0-8Z" /></svg></button>
-                {reasoning !== undefined && <button ref={itemRef()} type="button" role="menuitem" aria-label={`${t('menu.effort')} ${effortLabel}`} className={css.effortCaption} onClick={() => { setPane('effort') }}>{effortLabel}<IconChevronRightOutline14 /></button>}
+                <button ref={itemRef()} type="button" role="menuitem" aria-label={`${t('menu.model')} ${modelLabel}`} className={css.modelHeading} onClick={() => { setPane('model') }}>
+                  {reasoning !== undefined && <span className={css.effortCaption}>{previewEffortLabel}<IconChevronRightOutline14 /></span>}
+                  <span className={css.modelCaption}>{modelLabel}<IconChevronRightOutline14 /></span>
+                </button>
                 {reasoning !== undefined && <button type="button" className={css.resetEffort} aria-label={t('effort.providerDefault')} title={t('effort.providerDefault')} disabled={busy || locked} onClick={() => { chooseEffort(reasoning.defaultEffort, true) }}>↺</button>}
               </div>
-              <button ref={itemRef()} type="button" role="menuitem" aria-label={`${t('menu.model')} ${modelLabel}`} className={css.modelCaption} onClick={() => { setPane('model') }}>{modelLabel}<IconChevronRightOutline14 /></button>
               {reasoning !== undefined && (
                 <div className={css.effortTrack}>
                   <div className={css.effortFill} style={{ width: `${effortChoices.length <= 1 ? 0 : (effortDraft ?? effortIndex) / (effortChoices.length - 1) * 100}%` }} />
                   <div className={css.effortStops} aria-hidden="true">{effortChoices.map(choice => <span key={choice.key} />)}</div>
-                  <input type="range" aria-label={t('menu.effort')} aria-valuetext={effortLabel} min={0} max={Math.max(0, effortChoices.length - 1)} step={1} value={effortDraft ?? effortIndex} disabled={busy || locked || effortChoices.length < 2}
+                  <input type="range" aria-label={t('menu.effort')} aria-valuetext={previewEffortLabel} min={0} max={Math.max(0, effortChoices.length - 1)} step={1} value={effortDraft ?? effortIndex} disabled={busy || locked || effortChoices.length < 2}
                     onPointerDown={event => { dragging.current = true; event.currentTarget.setPointerCapture?.(event.pointerId) }}
                     onPointerUp={event => {
                       if (!dragging.current) return
@@ -395,37 +398,7 @@ export function ModelSelect(
             </>
           )}
 
-          {pane === 'effort' && (
-            <>
-              {state.error !== null && lastActionRef.current === 'load' && (
-                <div className={css.error}>
-                  <span>{t('error.action', { message: state.error })}</span>
-                  <button type="button" className={css.retry} onClick={reload}>{t('action.reload')}</button>
-                </div>
-              )}
-              {effortChoices.length === 0
-                ? <div className={css.empty}>{t('empty.efforts')}</div>
-                : effortChoices.map(level => (
-                  <button
-                    ref={itemRef()}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={effectiveEffort === level.effort}
-                    className={clsx(css.option, effectiveEffort === level.effort && css.selected)}
-                    key={level.key}
-                    disabled={busy}
-                    onClick={() => { chooseEffort(level.effort) }}
-                  >
-                    <span className={css.optionCopy}>
-                      <span className={css.modelName}>{level.label}</span>
-                    </span>
-                    <span className={css.check}>
-                      {effectiveEffort === level.effort ? <IconCheckOutline16 /> : null}
-                    </span>
-                  </button>
-                ))}
-            </>
-          )}
+
         </div>
       )}
       {toast !== null && (
