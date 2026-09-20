@@ -40,7 +40,7 @@
 }
 
 .trigger:hover:not(:disabled) {
-  background: var(--dsw-alias-interactive-bg-hover);
+  background: var(--dsw-alias-interactive-bg-active);
 }
 
 .trigger:focus-visible {
@@ -320,6 +320,9 @@
 .fastButton[aria-pressed="true"] { color: var(--dsw-alias-brand-primary); }
 .fastButton:disabled { opacity: .35; cursor: default; }
 
-.modelHeading { flex-direction: column; gap: 0; width: 100%; padding: 2px 8px; min-height: 44px; }
-.modelHeading:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); border-radius: 6px; }
+.modelHeading { flex-direction: column; gap: 0; justify-self: center; width: fit-content; max-width: 100%; min-width: 0; padding: 2px 6px; min-height: 44px; border-radius: 6px; }
+.modelHeading:hover:not(:disabled),
+.modelHeading:focus-visible { background: var(--dsw-alias-interactive-bg-hover); }
+.modelHeading:active:not(:disabled) { background: var(--dsw-alias-interactive-bg-active); }
+.modelHeading:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); }
 .cardHeading { margin-bottom: 12px; }
