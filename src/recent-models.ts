@@ -38,7 +38,7 @@ export class RecentModels {
   private state: RecentState = { routes: [], loading: false, unavailable: false }
   private pending: Promise<void> | undefined
   private abort = new AbortController()
-  constructor(private storage: Pick<Storage, 'getItem' | 'setItem'> | undefined, private request: typeof fetch = fetch, private now = Date.now) {
+  constructor(private storage: Pick<Storage, 'getItem' | 'setItem'> | undefined, private request: typeof fetch = (...args) => fetch(...args), private now = Date.now) {
     try { this.choices = parseRows(JSON.parse(storage?.getItem(KEY) ?? '[]'), false) } catch { /* 无效或受限的浏览器存储不阻止模型选择。 */ }
     this.publish(false, false)
   }

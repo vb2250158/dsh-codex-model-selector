@@ -11,6 +11,20 @@ const api = (rows: unknown[]) => vi.fn(async () => ({ ok: true, json: async () =
 const memory = () => { let value: string | null = null; return { getItem: () => value, setItem: (_key: string, next: string) => { value = next } } }
 afterEach(cleanup)
 
+it('calls the native fetch without binding it to the recent-model store', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = function (this: unknown) {
+    if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation')
+    return api([route('a')])()
+  } as typeof fetch
+  try {
+    const recent = new RecentModels(undefined)
+    await recent.refresh()
+    expect(recent.getSnapshot().unavailable).toBe(false)
+    expect(recent.getSnapshot().routes).toHaveLength(1)
+  } finally { globalThis.fetch = original }
+})
+
 it('combines counts, separates providers, expires old records and breaks ties by recency', () => {
   expect(rankRecent([route('a', 2, now - 1), route('a'), route('b', 3, now - 2), route('expired', 100, now - 31 * 86400000), route('future', 100, now + 1)], now).map(r => [r.provider, r.count])).toEqual([['a', 3], ['b', 3]])
 })
