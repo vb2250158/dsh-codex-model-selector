@@ -53,6 +53,20 @@ function state(overrides: Partial<ModelDirectoryState> = {}): ModelDirectoryStat
 afterEach(cleanup)
 
 describe('ModelSelect reasoning effort', () => {
+  it.each([
+    { current: { provider: 'deepseek-official', model: 'deepseek-v4-flash' }, label: 'DeepSeek' },
+    { current: { provider: 'deepseek-official', model: 'unlisted' }, label: 'DeepSeek' },
+    { current: { provider: 'unlisted-provider', model: 'unlisted' }, label: 'unlisted-provider' },
+  ])('shows the selected provider $label in the compact card', ({ current, label }) => {
+    render(<ModelSelect locked={false} available directory={createSnapshotStore(state({ current }))} load={vi.fn()} select={vi.fn()} t={t} />)
+    const trigger = screen.getByRole('button', { name: /选择模型/ })
+    expect(trigger.textContent).toContain(`${current.model === 'deepseek-v4-flash' ? 'DeepSeek-V4-Flash' : current.model} · ${label}`)
+    fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+    const provider = screen.getByTitle(label)
+    expect(provider.textContent).toBe(label)
+    expect(provider.closest('[role="menuitem"]')).toBeTruthy()
+  })
+
   it('shows a filled lightning before the model when the saved fast tier is active', async () => {
     const directory = createSnapshotStore<ModelDirectoryState>(state())
     render(<ModelSelect locked={false} available directory={directory} load={vi.fn()} select={vi.fn()} t={t} loadSpeed={async () => ({ visible: true, tier: 'fast' })} />)
@@ -177,7 +191,7 @@ describe('ModelSelect reasoning effort', () => {
     />)
 
     const trigger = screen.getByRole('button', { name: '选择模型，当前 deepseek-official/removed-model' })
-    expect(trigger.textContent).toContain('deepseek-official/removed-model')
+    expect(trigger.textContent).toContain('removed-model · DeepSeek')
     fireEvent.click(trigger)
     expect(screen.queryByRole('menuitem', { name: /推理等级/ })).toBeNull()
     fireEvent.click(screen.getByRole('menuitem', { name: /模型/ }))

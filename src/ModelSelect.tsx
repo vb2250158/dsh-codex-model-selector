@@ -39,8 +39,8 @@ interface EffortChoice {
  * @returns the trigger and, while open, the two-level menu.
  */
 export function ModelSelect(
-  { locked, available, directory, load, select, t, loadSpeed, setSpeed }:
-  ModelSelectInjected & { locked: boolean; loadSpeed?: () => Promise<{ visible: boolean; tier: string }>; setSpeed?: (tier: string) => Promise<boolean> } & PropsLocale<'model'>,
+  { locked, available, directory, load, select, t, loadSpeed, setSpeed, pickerOnly = false }:
+  ModelSelectInjected & { locked: boolean; pickerOnly?: boolean; loadSpeed?: () => Promise<{ visible: boolean; tier: string }>; setSpeed?: (tier: string) => Promise<boolean> } & PropsLocale<'model'>,
 ) {
   const state = useSyncExternalStore(
     fn => directory.subscribe(fn),
@@ -146,7 +146,7 @@ export function ModelSelect(
   if (!available) return null
 
   const show = (): void => {
-    setPane('root')
+    setPane(pickerOnly ? 'model' : 'root')
     setSearchQuery('')
     setOpen(true)
     reload()
@@ -170,14 +170,15 @@ export function ModelSelect(
     if (event.target === modelSearchRef.current) {
       if (event.key === 'Escape') {
         event.preventDefault()
-        setPane('root')
+        if (pickerOnly) close(true)
+        else setPane('root')
       }
       return
     }
     if (event.key === 'Escape' && open) {
       event.preventDefault()
       // Escape backs out of a drilled pane first, then closes.
-      if (pane !== 'root') setPane('root')
+      if (pane !== 'root' && !pickerOnly) setPane('root')
       else close(true)
       return
     }
@@ -239,7 +240,10 @@ export function ModelSelect(
     ? t('trigger.loading')
     : currentChoice?.model.name
       ?? (state.current === null ? t('trigger.fallback') : `${state.current.provider}/${state.current.model}`)
-  const triggerLabel = effortLabel === undefined ? modelLabel : `${modelLabel} · ${effortLabel}`
+  const providerLabel = state.groups.find(group => group.id === state.current?.provider)?.name
+    ?? state.current?.provider
+  const routeLabel = providerLabel === undefined ? modelLabel : `${currentChoice?.model.name ?? state.current?.model} · ${providerLabel}`
+  const triggerLabel = effortLabel === undefined ? routeLabel : `${routeLabel} · ${effortLabel}`
   const triggerAria = waiting
     ? t('trigger.loading')
     : state.current === null
@@ -255,7 +259,7 @@ export function ModelSelect(
   }
 
   return (
-    <div ref={rootRef} className={css.root} onKeyDown={onRootKeyDown} onBlur={onBlur}>
+    <div ref={rootRef} className={clsx(css.root, pickerOnly && css.settingsPicker)} onKeyDown={onRootKeyDown} onBlur={onBlur}>
       <button
         ref={triggerRef}
         type="button"
@@ -275,8 +279,8 @@ export function ModelSelect(
         }}
       >
         {speed?.visible && speed.tier === 'fast' && <svg className={css.triggerFast} data-fast-mode="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7V2Z" /></svg>}
-        <span className={css.triggerLabel}>{modelLabel}</span>
-        {effortLabel !== undefined && <span className={css.triggerEffort}>{effortLabel}</span>}
+        <span className={css.triggerLabel}>{routeLabel}</span>
+        {!pickerOnly && effortLabel !== undefined && <span className={css.triggerEffort}>{effortLabel}</span>}
         <IconChevronDownOutline14 className={clsx(css.chevron, open && css.chevronOpen)} />
       </button>
 
@@ -303,6 +307,7 @@ export function ModelSelect(
                 <button ref={itemRef()} type="button" role="menuitem" aria-label={`${t('menu.model')} ${modelLabel}`} className={css.modelHeading} onClick={() => { setPane('model') }}>
                   {reasoning !== undefined && <span className={css.effortCaption}>{previewEffortLabel}<IconChevronRightOutline14 /></span>}
                   <span className={css.modelCaption}>{modelLabel}<IconChevronRightOutline14 /></span>
+                  {providerLabel !== undefined && <span className={css.providerCaption} title={providerLabel}>{providerLabel}</span>}
                 </button>
                 {reasoning !== undefined && <button type="button" className={css.resetEffort} aria-label={t('effort.providerDefault')} title={t('effort.providerDefault')} disabled={busy || locked} onClick={() => { chooseEffort(reasoning.defaultEffort, true) }}>↺</button>}
               </div>

@@ -3,6 +3,16 @@
   min-width: 0;
 }
 
+.settingsPicker .menu {
+  top: calc(100% + 8px);
+  bottom: auto;
+  left: 0;
+  right: auto;
+  max-height: min(360px, 45vh);
+}
+
+.settingsPicker .trigger { max-width: 100%; }
+
 /* Figma 313:14108 ToggleButton: 13/20 medium secondary label, 4px gap,
    12px caption chevron; 28px chip height matches the sibling Plan /
    Read-only selects in the same tool row. */
@@ -294,6 +304,7 @@
 .modelHeading, .effortCaption, .modelCaption, .resetEffort { border: none; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 2px; font: inherit; }
 .effortCaption { color: var(--dsw-alias-brand-primary); font-size: 12px; }
 .modelCaption { width: 100%; font-size: 12px; line-height: 18px; margin: 2px 0 0; }
+.providerCaption { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dsw-alias-label-tertiary); font-size: 11px; line-height: 16px; }
 .resetEffort { font-size: 20px; color: var(--dsw-alias-label-tertiary); }
 .resetEffort:disabled { opacity: .4; cursor: default; }
 .effortTrack { position: relative; height: 24px; margin: 0 3px; border-radius: 20px; background: var(--dsw-alias-interactive-bg-hover); }

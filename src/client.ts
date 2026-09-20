@@ -1,10 +1,14 @@
 /** Replace only the composer model seat and reuse the official directory. */
 import { ModelSelect } from './ModelSelect.tsx'
+import { SettingsModelPicker } from './SettingsModelPicker.tsx'
 import { cssText } from './ModelSelect.module.css'
 
 export const inject = ['slots', 'sessions', 'modelDirectories']
 
 export function apply(ctx) {
+  ctx.slots.inject('settings.model-redirect.picker', () => ctx.slots.register({
+    name: 'settings.model-redirect.picker', locale: 'model',
+  }, SettingsModelPicker))
   ctx.effect(() => {
     const style = document.createElement('style')
     style.dataset.plugin = 'dsh-codex-model-selector'
