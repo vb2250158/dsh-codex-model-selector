@@ -21,9 +21,14 @@ import {
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ModelSelectInjected } from '@deepseek-ai/dsh-client-ui-model-selection/client'
 import css from './ModelSelect.module.css'
+import { routeKey, type RecentModels, type RecentState } from './recent-models.ts'
+import { recentLocales, type RecentText } from './recent-locales.ts'
+const EMPTY_RECENTS: RecentState = { routes: [], loading: false, unavailable: false }
+const noSubscribe = () => () => {}
+const emptyRecents = () => EMPTY_RECENTS
 
 /** Which pane the dropdown shows: the two-row root or one drilled-in list. */
-type Pane = 'root' | 'model'
+type Pane = 'root' | 'model' | 'all'
 
 /** One dynamic effort row; undefined means preserve the provider default. */
 interface EffortChoice {
@@ -39,9 +44,10 @@ interface EffortChoice {
  * @returns the trigger and, while open, the two-level menu.
  */
 export function ModelSelect(
-  { locked, available, directory, load, select, t, loadSpeed, setSpeed, pickerOnly = false }:
-  ModelSelectInjected & { locked: boolean; pickerOnly?: boolean; loadSpeed?: () => Promise<{ visible: boolean; tier: string }>; setSpeed?: (tier: string) => Promise<boolean> } & PropsLocale<'model'>,
+  { locked, available, directory, load, select, t, loadSpeed, setSpeed, pickerOnly = false, recents, recentText = key => recentLocales.zh[key] }:
+  ModelSelectInjected & { locked: boolean; pickerOnly?: boolean; recents?: RecentModels; recentText?: RecentText; loadSpeed?: () => Promise<{ visible: boolean; tier: string }>; setSpeed?: (tier: string) => Promise<boolean> } & PropsLocale<'model'>,
 ) {
+  const recentState = useSyncExternalStore(recents?.subscribe ?? noSubscribe, recents?.getSnapshot ?? emptyRecents)
   const state = useSyncExternalStore(
     fn => directory.subscribe(fn),
     () => directory.getSnapshot(),
@@ -91,6 +97,10 @@ export function ModelSelect(
     ? -1
     : choices.findIndex(c => c.selection.provider === state.current?.provider && c.selection.model === state.current.model)
   const currentChoice = choices[selectedIndex]
+  const recentChoices = useMemo(() => {
+    const catalog = new Map(choices.map(choice => [routeKey(choice.selection), choice]))
+    return recentState.routes.flatMap(route => { const choice = catalog.get(routeKey(route)); return choice ? [choice] : [] }).slice(0, 6)
+  }, [choices, recentState.routes])
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLocaleLowerCase())
   const filteredGroups = useMemo(() => {
     if (deferredSearchQuery === '') return state.groups
@@ -140,7 +150,8 @@ export function ModelSelect(
   }, [open])
 
   useEffect(() => {
-    if (open && pane === 'model') modelSearchRef.current?.focus()
+    if (open && (pane === 'model' || pane === 'all')) modelSearchRef.current?.focus()
+    if (open && pane === 'model' && recents !== undefined) itemRefs.current[0]?.focus()
   }, [open, pane])
 
   if (!available) return null
@@ -150,6 +161,7 @@ export function ModelSelect(
     setSearchQuery('')
     setOpen(true)
     reload()
+    void recents?.refresh()
   }
 
   const close = (restoreFocus = false): void => {
@@ -170,7 +182,8 @@ export function ModelSelect(
     if (event.target === modelSearchRef.current) {
       if (event.key === 'Escape') {
         event.preventDefault()
-        if (pickerOnly) close(true)
+        if (pane === 'all') setPane('model')
+        else if (pickerOnly) close(true)
         else setPane('root')
       }
       return
@@ -178,7 +191,8 @@ export function ModelSelect(
     if (event.key === 'Escape' && open) {
       event.preventDefault()
       // Escape backs out of a drilled pane first, then closes.
-      if (pane !== 'root' && !pickerOnly) setPane('root')
+      if (pane === 'all') setPane('model')
+      else if (pane !== 'root' && !pickerOnly) setPane('root')
       else close(true)
       return
     }
@@ -215,7 +229,10 @@ export function ModelSelect(
       return
     }
     lastActionRef.current = 'select'
-    void select(selection).then(settleSelection)
+    void select(selection).then(accepted => {
+      if (accepted && !pickerOnly) recents?.recordChoice(selection)
+      settleSelection(accepted)
+    })
   }
 
   const chooseEffort = (effort: string | undefined, keepOpen = false): void => {
@@ -334,8 +351,29 @@ export function ModelSelect(
             </div>
           )}
 
-          {pane === 'model' && (
+          {pane === 'model' && recents !== undefined && (
+            <div className={clsx(css.groups, 'scrollable')}>
+              {recentState.loading && <div className={css.status}>{recentText('loading')}</div>}
+              {recentState.unavailable && <div className={css.status} role="status">{recentText('unavailable')}</div>}
+              {recentChoices.map(({ group, model }) => {
+                const selected = state.current?.provider === group.id && state.current?.model === model.id
+                return <button ref={itemRef()} type="button" role="menuitemradio" aria-checked={selected}
+                  className={clsx(css.option, selected && css.selected)} key={routeKey({ provider: group.id, model: model.id })}
+                  title={`${model.name} · ${group.name}`} disabled={busy || locked}
+                  onClick={() => { choose({ provider: group.id, model: model.id }) }}>
+                  <span className={css.optionCopy}><span className={css.modelName}>{model.name}</span><span className={css.providerCaption}>{group.name}</span></span>
+                  <span className={css.check}>{selected ? <IconCheckOutline16 /> : null}</span>
+                </button>
+              })}
+              {!recentState.loading && recentChoices.length === 0 && <div className={css.empty}>{recentText('empty')}</div>}
+              <button ref={itemRef()} type="button" role="menuitem" className={css.cell} onClick={() => { setSearchQuery(''); setPane('all') }}>
+                <span className={css.cellLabel}>{recentText('more')}</span><IconChevronRightOutline14 />
+              </button>
+            </div>
+          )}
+          {(pane === 'all' || pane === 'model' && recents === undefined) && (
             <>
+              {pane === 'all' && <button type="button" className={css.cell} onClick={() => { setPane('model') }}>{recentText('back')}</button>}
               {state.status === 'loading' && (
                 <div className={css.status}>{t('status.loading')}</div>
               )}
@@ -378,7 +416,7 @@ export function ModelSelect(
                             className={clsx(css.option, selected && css.selected)}
                             key={model.id}
                             title={model.name}
-                            disabled={busy}
+                            disabled={busy || locked}
                             onClick={() => { choose({ provider: group.id, model: model.id }) }}
                           >
                             <span className={css.optionCopy}>
