@@ -1,6 +1,6 @@
 {
   "name": "dsh-codex-model-selector",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "module",
   "description": "Compact Codex-style model and reasoning selector for DSH",
   "license": "MIT",
@@ -40,7 +40,8 @@
     "react-dom": "^18.3.1",
     "@testing-library/react": "^16.3.0",
     "vitest": "^4.1.0",
-    "jsdom": "^26.1.0"
+    "jsdom": "^26.1.0",
+    "@testing-library/dom": "^10.4.1"
   },
   "author": "vb2250158",
   "repository": {
