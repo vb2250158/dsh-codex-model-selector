@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7
+
+- Update DSH compatibility requirements and interfaces for 0.2.1-alpha.1.
+
 ## 0.1.2 - 2026-09-11
 
 - Add local provider/model search to the model list.

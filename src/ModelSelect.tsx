@@ -15,8 +15,8 @@ import {
 import clsx from 'clsx'
 import type { ModelReasoningEffort, ModelSelection } from '@deepseek-ai/dsh-api-remotes/client'
 import {
-  IconCheckOutline16, IconChevronDownOutline14, IconChevronRightOutline14,
-  IconWarningOutline16, Toast,
+  IconCheckOutlineRegular, IconChevronDownOutlineRegular, IconChevronRightOutlineRegular,
+  IconWarningOutlineRegular, Toast,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ModelSelectInjected } from '@deepseek-ai/dsh-client-ui-model-selection/client'
@@ -298,7 +298,7 @@ export function ModelSelect(
         {speed?.visible && speed.tier === 'fast' && <svg className={css.triggerFast} data-fast-mode="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7V2Z" /></svg>}
         <span className={css.triggerLabel}>{routeLabel}</span>
         {!pickerOnly && effortLabel !== undefined && <span className={css.triggerEffort}>{effortLabel}</span>}
-        <IconChevronDownOutline14 className={clsx(css.chevron, open && css.chevronOpen)} />
+        <IconChevronDownOutlineRegular className={clsx(css.chevron, open && css.chevronOpen)} />
       </button>
 
       {open && (
@@ -322,8 +322,8 @@ export function ModelSelect(
                   }).finally(() => setSpeedBusy(false))
                 }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7l0-8Z" /></svg></button>
                 <button ref={itemRef()} type="button" role="menuitem" aria-label={`${t('menu.model')} ${modelLabel}`} className={css.modelHeading} onClick={() => { setPane('model') }}>
-                  {reasoning !== undefined && <span className={css.effortCaption}>{previewEffortLabel}<IconChevronRightOutline14 /></span>}
-                  <span className={css.modelCaption}>{modelLabel}<IconChevronRightOutline14 /></span>
+                  {reasoning !== undefined && <span className={css.effortCaption}>{previewEffortLabel}<IconChevronRightOutlineRegular /></span>}
+                  <span className={css.modelCaption}>{modelLabel}<IconChevronRightOutlineRegular /></span>
                   {providerLabel !== undefined && <span className={css.providerCaption} title={providerLabel}>{providerLabel}</span>}
                 </button>
                 {reasoning !== undefined && <button type="button" className={css.resetEffort} aria-label={t('effort.providerDefault')} title={t('effort.providerDefault')} disabled={busy || locked} onClick={() => { chooseEffort(reasoning.defaultEffort, true) }}>↺</button>}
@@ -362,12 +362,12 @@ export function ModelSelect(
                   title={`${model.name} · ${group.name}`} disabled={busy || locked}
                   onClick={() => { choose({ provider: group.id, model: model.id }) }}>
                   <span className={css.optionCopy}><span className={css.modelName}>{model.name}</span><span className={css.providerCaption}>{group.name}</span></span>
-                  <span className={css.check}>{selected ? <IconCheckOutline16 /> : null}</span>
+                  <span className={css.check}>{selected ? <IconCheckOutlineRegular /> : null}</span>
                 </button>
               })}
               {!recentState.loading && recentChoices.length === 0 && <div className={css.empty}>{recentText('empty')}</div>}
               <button ref={itemRef()} type="button" role="menuitem" className={css.cell} onClick={() => { setSearchQuery(''); setPane('all') }}>
-                <span className={css.cellLabel}>{recentText('more')}</span><IconChevronRightOutline14 />
+                <span className={css.cellLabel}>{recentText('more')}</span><IconChevronRightOutlineRegular />
               </button>
             </div>
           )}
@@ -423,7 +423,7 @@ export function ModelSelect(
                               <span className={css.modelName}>{model.name}</span>
                             </span>
                             <span className={css.check}>
-                              {selected ? <IconCheckOutline16 /> : null}
+                              {selected ? <IconCheckOutlineRegular /> : null}
                             </span>
                           </button>
                         )
@@ -448,7 +448,7 @@ export function ModelSelect(
         <Toast
           key={toast.seq}
           text={toast.text}
-          icon={<IconWarningOutline16 />}
+          icon={<IconWarningOutlineRegular />}
           anchor={rootRef.current?.closest<HTMLElement>('[data-composer-card]') ?? null}
           onDone={() => { setToast(null) }}
         />

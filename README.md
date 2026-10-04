@@ -1,5 +1,7 @@
 # DSH Codex Model Selector
 
+This release requires DSH 0.2.1-alpha.1 or a compatible 0.2 release. See [compatibility details](docs/dsh-0.2-compatibility.md).
+
 ## 0.1.6
 
 - 修复浏览器原生 `fetch` 被当作统计对象方法调用而触发 `Illegal invocation`，恢复实际请求记录参与常用模型排名。
