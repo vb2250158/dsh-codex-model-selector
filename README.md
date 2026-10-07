@@ -45,3 +45,7 @@ This release requires DSH 0.2.1-alpha.1 or a compatible 0.2 release. See [compat
 卡片中央的强度文字、模型名称与提供商名称共用一个换模型按钮；提供商名称来自当前模型目录，目录缺失时显示提供商 ID，长名称截断后可悬停查看。思考强度由下方滑条和右侧重置按钮调整。
 
 拖动强度滑条时，卡片级别文字实时预览当前档位，松手后保存；取消拖动恢复已保存的级别。
+
+## Plugin display metadata
+
+The plugin list shows **Model & reasoning selector** in English and **模型与推理选择** in Chinese, following the DSH interface language. `locale/en.json` and `locale/zh.json` provide the title and description; `icon.svg` supplies self-contained artwork. The package exports and publishes these resources. The icon is adapted from Lucide; see [ICON_LICENSE.txt](ICON_LICENSE.txt).
