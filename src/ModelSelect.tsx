@@ -16,7 +16,7 @@ import clsx from 'clsx'
 import type { ModelReasoningEffort, ModelSelection } from '@deepseek-ai/dsh-api-remotes/client'
 import {
   IconCheckOutlineRegular, IconChevronDownOutlineRegular, IconChevronRightOutlineRegular,
-  IconWarningOutlineRegular, Toast,
+  IconWarningOutlineRegular, Toast, MenuSurface,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ModelSelectInjected } from '@deepseek-ai/dsh-client-ui-model-selection/client'
@@ -44,8 +44,8 @@ interface EffortChoice {
  * @returns the trigger and, while open, the two-level menu.
  */
 export function ModelSelect(
-  { locked, available, directory, load, select, t, loadSpeed, setSpeed, pickerOnly = false, recents, recentText = key => recentLocales.zh[key] }:
-  ModelSelectInjected & { locked: boolean; pickerOnly?: boolean; recents?: RecentModels; recentText?: RecentText; loadSpeed?: () => Promise<{ visible: boolean; tier: string }>; setSpeed?: (tier: string) => Promise<boolean> } & PropsLocale<'model'>,
+  { locked, available, directory, load, select, t, loadSpeed, setSpeed, pickerOnly = false, embedded = false, recents, recentText = key => recentLocales.zh[key] }:
+  ModelSelectInjected & { locked: boolean; pickerOnly?: boolean; embedded?: boolean; recents?: RecentModels; recentText?: RecentText; loadSpeed?: () => Promise<{ visible: boolean; tier: string }>; setSpeed?: (tier: string) => Promise<boolean> } & PropsLocale<'model'>,
 ) {
   const recentState = useSyncExternalStore(recents?.subscribe ?? noSubscribe, recents?.getSnapshot ?? emptyRecents)
   const state = useSyncExternalStore(
@@ -276,7 +276,7 @@ export function ModelSelect(
   }
 
   return (
-    <div ref={rootRef} className={clsx(css.root, pickerOnly && css.settingsPicker)} onKeyDown={onRootKeyDown} onBlur={onBlur}>
+    <div ref={rootRef} className={clsx(css.root, pickerOnly && css.settingsPicker, embedded && css.embedded)} onKeyDown={onRootKeyDown} onBlur={onBlur}>
       <button
         ref={triggerRef}
         type="button"
@@ -302,7 +302,7 @@ export function ModelSelect(
       </button>
 
       {open && (
-        <div
+        <MenuSurface
           id={`${id}-menu`}
           className={css.menu}
           role="menu"
@@ -442,7 +442,7 @@ export function ModelSelect(
           )}
 
 
-        </div>
+        </MenuSurface>
       )}
       {toast !== null && (
         <Toast

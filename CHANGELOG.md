@@ -1,3 +1,7 @@
+# 0.1.11
+
+新增供输入补齐等独立设置复用的 modelPickers.Picker，沿用原 ModelSelect、可见目录、常用排序与当前标记。菜单改用主题 MenuSurface，支持父浮层内展开；会话模型选择保持原行为。
+
 # Changelog
 
 ## 0.1.10 (2026-10-07)

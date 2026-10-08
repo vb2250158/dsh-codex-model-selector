@@ -11,6 +11,11 @@ import type { RecentText } from './recent-locales.ts'
 interface PickerProps {
   recents?: RecentModels
   recentText?: RecentText
+  embedded?: boolean
+  status?: ModelDirectoryState['status']
+  error?: string | null
+  failures?: ModelDirectoryState['failures']
+  load?: () => void
   groups: ModelCatalog['groups']
   current: ModelSelection | null
   locked: boolean
@@ -18,11 +23,11 @@ interface PickerProps {
 }
 
 /** 仅编辑规则草稿，不提交会话模型选择。 */
-export function SettingsModelPicker({ groups, current, locked, select, t, recents, recentText }: PickerProps & PropsLocale<'model'>) {
+export function SettingsModelPicker({ groups, current, locked, select, t, recents, recentText, embedded, status = 'ready', error = null, failures = [], load = () => {} }: PickerProps & PropsLocale<'model'>) {
   const directory = useMemo(() => createSnapshotStore<ModelDirectoryState>({
-    status: 'ready', error: null, groups, failures: [], current, routable: true,
+    status, error, groups, failures, current, routable: true, pending: null,
   }), [])
-  useEffect(() => { directory.update(state => { state.groups = groups; state.current = current }) }, [directory, groups, current])
-  return <ModelSelect pickerOnly available locked={locked} directory={directory} load={() => {}} recents={recents} recentText={recentText}
+  useEffect(() => { directory.update(state => { state.groups = groups; state.current = current; state.status = status; state.error = error; state.failures = failures }) }, [directory, groups, current, status, error, failures])
+  return <ModelSelect pickerOnly embedded={embedded} available locked={locked} directory={directory} load={load} recents={recents} recentText={recentText}
     select={async selection => { select(selection); return true }} t={t} />
 }

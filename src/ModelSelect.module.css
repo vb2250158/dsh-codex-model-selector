@@ -97,9 +97,8 @@
   padding: 4px;
   /* Surface tokens match the Menu primitive card (ui-primitives
    * Menu.module.css) so every dropdown reads as the same material. */
-  border: 1px solid var(--dsw-alias-border-l2);
+  border: 0;
   border-radius: 18px;
-  background: var(--dsw-specific-menu);
   --dsw-elevation-stroke-color: var(--dsw-alias-border-l1);
   box-shadow: var(--dsw-elevation-prominent);
   color: var(--dsw-alias-label-primary);
@@ -326,3 +325,6 @@
 .modelHeading:active:not(:disabled) { background: var(--dsw-alias-interactive-bg-active); }
 .modelHeading:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); }
 .cardHeading { margin-bottom: 12px; }
+
+.embedded .menu { position: relative; top: auto; bottom: auto; left: auto; right: auto; width: 100%; min-width: 0; max-width: 100%; max-height: min(360px, 45vh); margin-top: 8px; }
+.embedded .trigger { max-width: 100%; }

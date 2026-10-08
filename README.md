@@ -51,3 +51,7 @@ This release requires DSH 0.2.1-alpha.1 or a compatible 0.2 release. See [compat
 The plugin list shows **Model & reasoning selector** in English and **模型与推理选择** in Chinese, following the DSH interface language. `locale/en.json` and `locale/zh.json` provide the title and description; `icon.svg` supplies self-contained artwork. The package exports and publishes these resources. The icon is adapted from Lucide; see [ICON_LICENSE.txt](ICON_LICENSE.txt).
 
 The icon uses a centered 36 × 36 viewBox to leave more space around the artwork inside the plugin icon frame.
+
+## 独立设置中的完整模型选择
+
+0.1.11 提供公开客户端服务 `modelPickers.Picker`，属性为 `sessionId`、`current`、`locked`、`select`。组件复用当前会话目录的可见模型和同一常用记录，只向调用者返回独立草稿选择，保持会话模型不变。调用者通过客户端依赖声明加载本插件，并注入 `modelPickers` 服务。嵌入模式在父浮层内展开，菜单材质由主题 MenuSurface 提供。

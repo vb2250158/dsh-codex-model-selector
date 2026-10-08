@@ -4,3 +4,5 @@ export const IconChevronDownOutlineRegular = () => <span />
 export const IconChevronRightOutlineRegular = () => <span />
 export const IconWarningOutlineRegular = () => <span />
 export const Toast = ({ text }) => <div role="alert">{text}</div>
+
+export const MenuSurface = ({children, ...props}) => <div {...props}>{children}</div>
