@@ -16,7 +16,7 @@ import clsx from 'clsx'
 import type { ModelReasoningEffort, ModelSelection } from '@deepseek-ai/dsh-api-remotes/client'
 import {
   IconCheckOutlineRegular, IconChevronDownOutlineRegular, IconChevronRightOutlineRegular,
-  IconWarningOutlineRegular, Toast, MenuSurface,
+  IconWarningOutlineRegular, Toast, MenuSurface, Modal, Input,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ModelSelectInjected } from '@deepseek-ai/dsh-client-ui-model-selection/client'
@@ -44,8 +44,8 @@ interface EffortChoice {
  * @returns the trigger and, while open, the two-level menu.
  */
 export function ModelSelect(
-  { locked, available, directory, load, select, t, loadSpeed, setSpeed, pickerOnly = false, embedded = false, recents, recentText = key => recentLocales.zh[key] }:
-  ModelSelectInjected & { locked: boolean; pickerOnly?: boolean; embedded?: boolean; recents?: RecentModels; recentText?: RecentText; loadSpeed?: () => Promise<{ visible: boolean; tier: string }>; setSpeed?: (tier: string) => Promise<boolean> } & PropsLocale<'model'>,
+  { locked, available, directory, load, select, t, loadSpeed, setSpeed, pickerOnly = false, embedded = false, dialog = false, onOpenChange, recents, recentText = key => recentLocales.zh[key] }:
+  ModelSelectInjected & { locked: boolean; pickerOnly?: boolean; embedded?: boolean; dialog?: boolean; onOpenChange?: (open: boolean) => void; recents?: RecentModels; recentText?: RecentText; loadSpeed?: () => Promise<{ visible: boolean; tier: string }>; setSpeed?: (tier: string) => Promise<boolean> } & PropsLocale<'model'>,
 ) {
   const recentState = useSyncExternalStore(recents?.subscribe ?? noSubscribe, recents?.getSnapshot ?? emptyRecents)
   const state = useSyncExternalStore(
@@ -53,6 +53,7 @@ export function ModelSelect(
     () => directory.getSnapshot(),
   )
   const [open, setOpen] = useState(false)
+  useEffect(() => { onOpenChange?.(open) }, [open, onOpenChange])
   const dragging = useRef(false)
   const [effortDraft, setEffortDraft] = useState<number | null>(null)
   const [pane, setPane] = useState<Pane>('root')
@@ -141,23 +142,23 @@ export function ModelSelect(
   }
 
   useEffect(() => {
-    if (!open) return
+    if (!open || dialog) return
     const closeOutside = (event: MouseEvent): void => {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
     }
     document.addEventListener('mousedown', closeOutside)
     return () => { document.removeEventListener('mousedown', closeOutside) }
-  }, [open])
+  }, [open, dialog])
 
   useEffect(() => {
     if (open && (pane === 'model' || pane === 'all')) modelSearchRef.current?.focus()
-    if (open && pane === 'model' && recents !== undefined) itemRefs.current[0]?.focus()
+    if (open && !dialog && pane === 'model' && recents !== undefined) itemRefs.current[0]?.focus()
   }, [open, pane])
 
   if (!available) return null
 
   const show = (): void => {
-    setPane(pickerOnly ? 'model' : 'root')
+    setPane(dialog ? 'all' : pickerOnly ? 'model' : 'root')
     setSearchQuery('')
     setOpen(true)
     reload()
@@ -179,6 +180,7 @@ export function ModelSelect(
   }
 
   const onRootKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (dialog && open && event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(true); return }
     if (event.target === modelSearchRef.current) {
       if (event.key === 'Escape') {
         event.preventDefault()
@@ -205,6 +207,7 @@ export function ModelSelect(
   }
 
   const onBlur = (event: FocusEvent<HTMLDivElement>): void => {
+    if (dialog) return
     // Disabling a saving control can blur it without a new focus target.
     if (event.relatedTarget === null || dragging.current) return
     if (event.relatedTarget instanceof Node && rootRef.current?.contains(event.relatedTarget)) return
@@ -275,6 +278,7 @@ export function ModelSelect(
     return (node: HTMLButtonElement | null) => { itemRefs.current[at] = node }
   }
 
+  const Surface = dialog ? Modal : MenuSurface
   return (
     <div ref={rootRef} className={clsx(css.root, pickerOnly && css.settingsPicker, embedded && css.embedded)} onKeyDown={onRootKeyDown} onBlur={onBlur}>
       <button
@@ -282,9 +286,9 @@ export function ModelSelect(
         type="button"
         className={css.trigger}
         aria-label={triggerAria}
-        aria-haspopup="menu"
+        aria-haspopup={dialog ? 'dialog' : 'menu'}
         aria-expanded={open}
-        aria-controls={open ? `${id}-menu` : undefined}
+        aria-controls={open && !dialog ? `${id}-menu` : undefined}
         title={speed?.visible && speed.tier === 'fast' ? `${triggerLabel} · 快速模式` : triggerLabel}
         disabled={locked}
         onClick={() => {
@@ -302,10 +306,9 @@ export function ModelSelect(
       </button>
 
       {open && (
-        <MenuSurface
-          id={`${id}-menu`}
-          className={css.menu}
-          role="menu"
+        <Surface
+          {...dialog ? { open, onClose: () => close(true), title: recentText('title'), closeLabel: recentText('close'), contentClassName: css.dialogContent } : { id: `${id}-menu`, role: 'menu' }}
+          className={dialog ? css.dialog : css.menu}
           aria-label={t('menu.aria')}
           aria-busy={state.status === 'loading' || busy}
         >
@@ -373,7 +376,7 @@ export function ModelSelect(
           )}
           {(pane === 'all' || pane === 'model' && recents === undefined) && (
             <>
-              {pane === 'all' && <button type="button" className={css.cell} onClick={() => { setPane('model') }}>{recentText('back')}</button>}
+              {pane === 'all' && !dialog && <button type="button" className={css.cell} onClick={() => { setPane('model') }}>{recentText('back')}</button>}
               {state.status === 'loading' && (
                 <div className={css.status}>{t('status.loading')}</div>
               )}
@@ -389,17 +392,25 @@ export function ModelSelect(
                   <button type="button" className={css.retry} onClick={reload}>{t('retry')}</button>
                 </div>
               ))}
-              <input
+              <Input
                 ref={modelSearchRef}
+                data-modal-autofocus={dialog || undefined}
                 className={css.search}
                 type="search"
                 value={searchQuery}
-                placeholder="搜索模型"
-                aria-label="搜索模型"
+                placeholder={recentText('search')}
+                aria-label={recentText('search')}
                 disabled={busy}
                 onChange={(event) => { setSearchQuery(event.currentTarget.value) }}
               />
               <div className={clsx(css.groups, 'scrollable')}>
+                {dialog && deferredSearchQuery === '' && recentChoices.length > 0 && <section role="group" aria-label={recentText('frequent')} className={css.group}>
+                  <div className={css.groupTitle}>{recentText('frequent')}</div>
+                  {recentChoices.map(({group, model}) => <button ref={itemRef()} type="button" role="menuitemradio" aria-checked={state.current?.provider === group.id && state.current?.model === model.id} className={css.option} key={routeKey({provider:group.id,model:model.id})} disabled={busy || locked} onClick={() => choose({provider:group.id,model:model.id})}>
+                    <span className={css.optionCopy}><span className={css.modelName}>{model.name}</span><span className={css.providerCaption}>{group.name}</span></span>
+                    <span className={css.check}>{state.current?.provider === group.id && state.current?.model === model.id ? <IconCheckOutlineRegular/> : null}</span>
+                  </button>)}
+                </section>}
                 {filteredGroups.map((group) => {
                   const headingId = `${id}-${group.id}`
                   return (
@@ -442,7 +453,7 @@ export function ModelSelect(
           )}
 
 
-        </MenuSurface>
+        </Surface>
       )}
       {toast !== null && (
         <Toast

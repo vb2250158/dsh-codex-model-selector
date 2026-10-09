@@ -10,6 +10,7 @@ import type { RecentText } from './recent-locales.ts'
 
 /** Independent selection never invokes the session's selectModel operation. */
 export interface IndependentPickerProps {
+  onOpenChange?: (open: boolean) => void
   sessionId: string
   current: ModelSelection | null
   locked: boolean
@@ -27,12 +28,12 @@ interface PickerContext {
 /** Create the public picker face with the selector's shared recent-model store. */
 export function createModelPickerService(ctx: PickerContext, recents: RecentModels, recentText: RecentText): { Picker: ComponentType<IndependentPickerProps> } {
   const t = ctx.locale.bind('model')
-  function Picker({ sessionId, current, locked, select }: IndependentPickerProps) {
+  function Picker({ sessionId, current, locked, select, onOpenChange }: IndependentPickerProps) {
     const directory = useMemo(() => ctx.modelDirectories.directoryFor(sessionId), [sessionId])
     const state = useSyncExternalStore(listener => directory.store.subscribe(listener), () => directory.store.getSnapshot())
     useEffect(() => { void directory.load().catch(() => { /* The directory exposes the catalog failure. */ }) }, [directory])
     return <SettingsModelPicker groups={state.groups} current={current} locked={locked} select={select}
-      recents={recents} recentText={recentText} t={t} embedded status={state.status === 'loading' ? 'loading' : state.error ? 'error' : 'ready'}
+      recents={recents} recentText={recentText} t={t} dialog onOpenChange={onOpenChange} status={state.status === 'loading' ? 'loading' : state.error ? 'error' : 'ready'}
       error={state.error} failures={state.failures} load={() => { void directory.load().catch(() => {}) }} />
   }
   return { Picker }

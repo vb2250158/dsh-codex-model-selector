@@ -328,3 +328,8 @@
 
 .embedded .menu { position: relative; top: auto; bottom: auto; left: auto; right: auto; width: 100%; min-width: 0; max-width: 100%; max-height: min(360px, 45vh); margin-top: 8px; }
 .embedded .trigger { max-width: 100%; }
+
+.dialog { width: min(560px, 100%); min-height: 0; }
+.dialogContent { min-height: 0; overflow: hidden; }
+.dialog .groups { max-height: min(420px, 50vh); overflow-y: auto; }
+.dialog .search { width: 100%; margin: 0 0 8px; }

@@ -223,7 +223,7 @@ describe('ModelSelect reasoning effort', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
     fireEvent.click(screen.getByRole('menuitem', { name: /模型/ }))
-    const search = screen.getByRole('searchbox', { name: '搜索模型' })
+    const search = screen.getByRole('searchbox', { name: '搜索提供商或模型' })
     expect(document.activeElement).toBe(search)
     fireEvent.change(search, { target: { value: 'terra' } })
     expect(screen.getByRole('menuitemradio', { name: 'GPT-5.6-Terra' })).toBeTruthy()

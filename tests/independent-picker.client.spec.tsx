@@ -1,4 +1,4 @@
-import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react'
+import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 import {afterEach, expect, it, vi} from 'vitest'
 import {createSnapshotStore} from '@deepseek-ai/dsh-client-store'
 import {createModelPickerService} from '../src/model-picker-service.tsx'
@@ -15,13 +15,27 @@ it('独立补齐选择复用可见目录和常用记录，不切换会话模型'
   const ctx={locale:{bind:()=>key=>zh[key]??key},modelDirectories:{directoryFor:()=>({store,load,select:mainSelect})}}
   const {Picker}=createModelPickerService(ctx,recents,key=>recentLocales.zh[key])
   render(<Picker sessionId="synthetic" current={{provider:'api',model:'main'}} locked={false} select={select}/>)
-  fireEvent.click(screen.getByRole('button'))
-  await waitFor(()=>expect(screen.getByRole('menuitemradio',{name:/Small Model/})).toBeTruthy())
-  expect(screen.getByRole('menuitemradio',{name:/Small Model/}).textContent).toContain('Provider A')
-  fireEvent.click(screen.getByRole('menuitemradio',{name:/Small Model/}))
+  const trigger=screen.getByRole('button')
+  fireEvent.click(trigger)
+  expect(screen.getByRole('dialog')).toBeTruthy()
+  const search=screen.getByRole('searchbox')
+  expect(document.activeElement).toBe(search)
+  await waitFor(()=>expect(within(screen.getByRole('group',{name:'常用模型'})).getByRole('menuitemradio',{name:/Small Model/})).toBeTruthy())
+  expect(within(screen.getByRole('group',{name:'常用模型'})).getByRole('menuitemradio',{name:/Small Model/}).textContent).toContain('Provider A')
+  fireEvent.change(search,{target:{value:'Small'}})
+  await waitFor(()=>expect(screen.queryByRole('menuitemradio',{name:'Main Model'})).toBeNull())
+  fireEvent.click(screen.getByRole('menuitemradio',{name:'Small Model'}))
   await waitFor(()=>expect(select).toHaveBeenCalledWith({provider:'api',model:'small'}))
   expect(mainSelect).not.toHaveBeenCalled()
   expect(store.getSnapshot().current.model).toBe('main')
   expect(load).toHaveBeenCalled()
+  expect(screen.queryByRole('dialog')).toBeNull()
+  await waitFor(()=>expect(document.activeElement).toBe(trigger))
+  fireEvent.click(trigger)
+  fireEvent.change(screen.getByRole('searchbox'),{target:{value:'Provider A'}})
+  await waitFor(()=>expect(screen.getByRole('menuitemradio',{name:'Main Model'})).toBeTruthy())
+  fireEvent.keyDown(screen.getByRole('searchbox'),{key:'Escape'})
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(select).toHaveBeenCalledTimes(1)
   recents.dispose()
 })

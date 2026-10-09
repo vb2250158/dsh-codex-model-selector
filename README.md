@@ -55,3 +55,7 @@ The icon uses a centered 36 × 36 viewBox to leave more space around the artwork
 ## 独立设置中的完整模型选择
 
 0.1.11 提供公开客户端服务 `modelPickers.Picker`，属性为 `sessionId`、`current`、`locked`、`select`。组件复用当前会话目录的可见模型和同一常用记录，只向调用者返回独立草稿选择，保持会话模型不变。调用者通过客户端依赖声明加载本插件，并注入 `modelPickers` 服务。嵌入模式在父浮层内展开，菜单材质由主题 MenuSurface 提供。
+
+独立补齐入口 `modelPickers.Picker` 打开可搜索主题弹窗，沿用同一可见目录、常用排序和选中标记；选择只修改调用方草稿。`onOpenChange` 供外层菜单暂停外部点击关闭，避免弹窗交互卸载选择器。
+
+The independent `modelPickers.Picker` opens a themed searchable dialog with the shared visible catalog, frequent models and current marker. Selection updates only the caller draft; `onOpenChange` lets an outer menu keep the dialog mounted.

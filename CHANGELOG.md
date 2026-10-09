@@ -1,3 +1,9 @@
+# 0.1.12
+
+独立补齐模型选择改用主题 Modal，直接展示搜索、常用模型和提供商分组。复用 ModelSelect 的过滤、标记及草稿选择逻辑；会话模型入口保持原交互。
+
+Independent completion selection opens a native searchable Modal with frequent models and provider groups, reusing ModelSelect filtering and draft selection.
+
 # 0.1.11
 
 新增供输入补齐等独立设置复用的 modelPickers.Picker，沿用原 ModelSelect、可见目录、常用排序与当前标记。菜单改用主题 MenuSurface，支持父浮层内展开；会话模型选择保持原行为。
