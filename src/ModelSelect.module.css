@@ -333,3 +333,7 @@
 .dialogContent { min-height: 0; overflow: hidden; }
 .dialog .groups { max-height: min(420px, 50vh); overflow-y: auto; }
 .dialog .search { width: 100%; margin: 0 0 8px; }
+
+.root[data-menu-side="below"] .menu { top: calc(100% + 8px); bottom: auto; }
+.root[data-menu-side="above"] .menu { top: auto; bottom: calc(100% + 8px); }
+.embedded[data-menu-side] .menu { top: auto; bottom: auto; }

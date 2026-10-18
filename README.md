@@ -65,3 +65,8 @@ The independent `modelPickers.Picker` opens a themed searchable dialog with the 
 `modelPickers.Control` accepts the same properties as `Picker` and reuses the composer’s single-line model/provider/effort control, frequent models, searchable catalog and reasoning slider. The caller owns saving; returning `false` does not record a successful selection. It never changes the session model itself.
 
 `modelPickers.Control` 与 `Picker` 使用相同属性，复用输入框的单行模型、提供商和强度显示，以及常用模型、目录搜索和思考强度滑条。保存由调用方负责；返回 `false` 不计入成功选择。组件不会自行切换会话模型。
+
+## 0.1.14
+
+- Menus choose the side with available viewport space and limit their height; a control in a top sidebar opens downward. Resizing recomputes placement.
+- 菜单按窗口剩余空间选择展开方向并限制高度；右侧顶部的控件向下展开，窗口缩放时重新计算。

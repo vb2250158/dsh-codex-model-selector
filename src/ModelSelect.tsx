@@ -53,6 +53,8 @@ export function ModelSelect(
     () => directory.getSnapshot(),
   )
   const [open, setOpen] = useState(false)
+  const [menuSide, setMenuSide] = useState<'above' | 'below'>('above')
+  const [menuHeight, setMenuHeight] = useState(360)
   useEffect(() => { onOpenChange?.(open) }, [open, onOpenChange])
   const dragging = useRef(false)
   const [effortDraft, setEffortDraft] = useState<number | null>(null)
@@ -146,8 +148,18 @@ export function ModelSelect(
     const closeOutside = (event: MouseEvent): void => {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
     }
+    const place = (): void => {
+      const rect = triggerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const above = rect.top - 12
+      const below = window.innerHeight - rect.bottom - 12
+      setMenuSide(below > above ? 'below' : 'above')
+      setMenuHeight(Math.max(0, Math.min(360, Math.max(above, below))))
+    }
+    place()
+    window.addEventListener('resize', place)
     document.addEventListener('mousedown', closeOutside)
-    return () => { document.removeEventListener('mousedown', closeOutside) }
+    return () => { document.removeEventListener('mousedown', closeOutside); window.removeEventListener('resize', place) }
   }, [open, dialog])
 
   useEffect(() => {
@@ -280,7 +292,7 @@ export function ModelSelect(
 
   const Surface = dialog ? Modal : MenuSurface
   return (
-    <div ref={rootRef} className={clsx(css.root, pickerOnly && css.settingsPicker, embedded && css.embedded)} onKeyDown={onRootKeyDown} onBlur={onBlur}>
+    <div ref={rootRef} className={clsx(css.root, pickerOnly && css.settingsPicker, embedded && css.embedded)} data-menu-side={menuSide} onKeyDown={onRootKeyDown} onBlur={onBlur}>
       <button
         ref={triggerRef}
         type="button"
@@ -309,6 +321,7 @@ export function ModelSelect(
         <Surface
           {...dialog ? { open, onClose: () => close(true), title: recentText('title'), closeLabel: recentText('close'), contentClassName: css.dialogContent } : { id: `${id}-menu`, role: 'menu' }}
           className={dialog ? css.dialog : css.menu}
+          style={dialog ? undefined : { maxHeight: menuHeight }}
           aria-label={t('menu.aria')}
           aria-busy={state.status === 'loading' || busy}
         >

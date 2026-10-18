@@ -6,7 +6,7 @@ import {RecentModels} from '../src/recent-models.ts'
 import {recentLocales} from '../src/recent-locales.ts'
 import {zh} from './fixtures/model-locales.ts'
 
-afterEach(cleanup)
+afterEach(()=>{cleanup();vi.restoreAllMocks()})
 it('完整独立控件复用单行入口、模型菜单和强度滑条，保存交回调用方', async()=>{
   const store=createSnapshotStore({status:'ready',error:null,failures:[],current:{provider:'api',model:'main'},routable:true,pending:null,
     groups:[{id:'api',name:'Provider A',models:[{id:'main',name:'Main Model',reasoning:{efforts:[{id:'low',name:'Low'},{id:'high',name:'High'}],defaultEffort:'low'}}]}]})
@@ -19,7 +19,13 @@ it('完整独立控件复用单行入口、模型菜单和强度滑条，保存�
   const trigger=screen.getByRole('button',{name:/选择模型/})
   expect(trigger.textContent).toContain('Main Model · Provider A')
   expect(trigger.textContent).toContain('Low')
+  vi.spyOn(trigger,'getBoundingClientRect').mockReturnValue({top:40,bottom:68,left:0,right:200,width:200,height:28,x:0,y:40,toJSON:()=>({})})
   fireEvent.click(trigger)
+  expect(trigger.parentElement?.getAttribute('data-menu-side')).toBe('below')
+  expect(screen.getByRole('menu').style.maxHeight).toBe('360px')
+  vi.spyOn(trigger,'getBoundingClientRect').mockReturnValue({top:700,bottom:728,left:0,right:200,width:200,height:28,x:0,y:700,toJSON:()=>({})})
+  fireEvent(window,new Event('resize'))
+  expect(trigger.parentElement?.getAttribute('data-menu-side')).toBe('above')
   const slider=screen.getByRole('slider')
   fireEvent.pointerDown(slider)
   fireEvent.change(slider,{target:{value:'1'}})
