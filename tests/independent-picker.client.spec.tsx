@@ -7,6 +7,28 @@ import {recentLocales} from '../src/recent-locales.ts'
 import {zh} from './fixtures/model-locales.ts'
 
 afterEach(cleanup)
+it('完整独立控件复用单行入口、模型菜单和强度滑条，保存交回调用方', async()=>{
+  const store=createSnapshotStore({status:'ready',error:null,failures:[],current:{provider:'api',model:'main'},routable:true,pending:null,
+    groups:[{id:'api',name:'Provider A',models:[{id:'main',name:'Main Model',reasoning:{efforts:[{id:'low',name:'Low'},{id:'high',name:'High'}],defaultEffort:'low'}}]}]})
+  const mainSelect=vi.fn(),select=vi.fn(async()=>true)
+  const recents=new RecentModels(undefined,async()=>Response.json({ok:true,records:[]}))
+  const t=(key,params)=>Object.entries(params??{}).reduce((s,[k,v])=>s.replaceAll('{'+k+'}',String(v)),zh[key]??key)
+  const ctx={locale:{bind:()=>t},modelDirectories:{directoryFor:()=>({store,load:async()=>store.getSnapshot(),select:mainSelect})}}
+  const {Control}=createModelPickerService(ctx,recents,key=>recentLocales.zh[key])
+  render(<Control sessionId="synthetic" current={{provider:'api',model:'main'}} locked={false} select={select}/>)
+  const trigger=screen.getByRole('button',{name:/选择模型/})
+  expect(trigger.textContent).toContain('Main Model · Provider A')
+  expect(trigger.textContent).toContain('Low')
+  fireEvent.click(trigger)
+  const slider=screen.getByRole('slider')
+  fireEvent.pointerDown(slider)
+  fireEvent.change(slider,{target:{value:'1'}})
+  fireEvent.pointerUp(slider)
+  await waitFor(()=>expect(select).toHaveBeenCalledWith({provider:'api',model:'main',reasoningEffort:'high'}))
+  expect(mainSelect).not.toHaveBeenCalled()
+  expect(store.getSnapshot().current.model).toBe('main')
+  recents.dispose()
+})
 it('独立补齐选择复用可见目录和常用记录，不切换会话模型', async()=>{
   const store=createSnapshotStore({status:'ready',error:null,failures:[],current:{provider:'api',model:'main'},routable:true,pending:null,
     groups:[{id:'api',name:'Provider A',models:[{id:'main',name:'Main Model'},{id:'small',name:'Small Model'}]}]})

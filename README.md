@@ -59,3 +59,9 @@ The icon uses a centered 36 × 36 viewBox to leave more space around the artwork
 独立补齐入口 `modelPickers.Picker` 打开可搜索主题弹窗，沿用同一可见目录、常用排序和选中标记；选择只修改调用方草稿。`onOpenChange` 供外层菜单暂停外部点击关闭，避免弹窗交互卸载选择器。
 
 The independent `modelPickers.Picker` opens a themed searchable dialog with the shared visible catalog, frequent models and current marker. Selection updates only the caller draft; `onOpenChange` lets an outer menu keep the dialog mounted.
+
+## 0.1.13: Shared compact control / 共享紧凑控件
+
+`modelPickers.Control` accepts the same properties as `Picker` and reuses the composer’s single-line model/provider/effort control, frequent models, searchable catalog and reasoning slider. The caller owns saving; returning `false` does not record a successful selection. It never changes the session model itself.
+
+`modelPickers.Control` 与 `Picker` 使用相同属性，复用输入框的单行模型、提供商和强度显示，以及常用模型、目录搜索和思考强度滑条。保存由调用方负责；返回 `false` 不计入成功选择。组件不会自行切换会话模型。

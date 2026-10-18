@@ -14,7 +14,7 @@ export interface IndependentPickerProps {
   sessionId: string
   current: ModelSelection | null
   locked: boolean
-  select: (selection: ModelSelection) => void
+  select: (selection: ModelSelection) => void | boolean | Promise<void | boolean>
 }
 
 interface PickerContext {
@@ -26,15 +26,17 @@ interface PickerContext {
 }
 
 /** Create the public picker face with the selector's shared recent-model store. */
-export function createModelPickerService(ctx: PickerContext, recents: RecentModels, recentText: RecentText): { Picker: ComponentType<IndependentPickerProps> } {
+export function createModelPickerService(ctx: PickerContext, recents: RecentModels, recentText: RecentText): { Picker: ComponentType<IndependentPickerProps>; Control: ComponentType<IndependentPickerProps> } {
   const t = ctx.locale.bind('model')
-  function Picker({ sessionId, current, locked, select, onOpenChange }: IndependentPickerProps) {
+  function View({ sessionId, current, locked, select, onOpenChange, full = false }: IndependentPickerProps & { full?: boolean }) {
     const directory = useMemo(() => ctx.modelDirectories.directoryFor(sessionId), [sessionId])
     const state = useSyncExternalStore(listener => directory.store.subscribe(listener), () => directory.store.getSnapshot())
     useEffect(() => { void directory.load().catch(() => { /* The directory exposes the catalog failure. */ }) }, [directory])
     return <SettingsModelPicker groups={state.groups} current={current} locked={locked} select={select}
-      recents={recents} recentText={recentText} t={t} dialog onOpenChange={onOpenChange} status={state.status === 'loading' ? 'loading' : state.error ? 'error' : 'ready'}
+      recents={recents} recentText={recentText} t={t} pickerOnly={!full} dialog={!full} onOpenChange={onOpenChange} status={state.status === 'loading' ? 'loading' : state.error ? 'error' : 'ready'}
       error={state.error} failures={state.failures} load={() => { void directory.load().catch(() => {}) }} />
   }
-  return { Picker }
+  function Picker(props: IndependentPickerProps) { return <View {...props} /> }
+  function Control(props: IndependentPickerProps) { return <View {...props} full /> }
+  return { Picker, Control }
 }

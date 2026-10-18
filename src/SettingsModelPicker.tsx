@@ -13,6 +13,7 @@ interface PickerProps {
   recentText?: RecentText
   embedded?: boolean
   dialog?: boolean
+  pickerOnly?: boolean
   onOpenChange?: (open: boolean) => void
   status?: ModelDirectoryState['status']
   error?: string | null
@@ -21,15 +22,15 @@ interface PickerProps {
   groups: ModelCatalog['groups']
   current: ModelSelection | null
   locked: boolean
-  select: (selection: ModelSelection) => void
+  select: (selection: ModelSelection) => void | boolean | Promise<void | boolean>
 }
 
 /** 仅编辑规则草稿，不提交会话模型选择。 */
-export function SettingsModelPicker({ groups, current, locked, select, t, recents, recentText, embedded, dialog, onOpenChange, status = 'ready', error = null, failures = [], load = () => {} }: PickerProps & PropsLocale<'model'>) {
+export function SettingsModelPicker({ groups, current, locked, select, t, recents, recentText, embedded, dialog, pickerOnly = true, onOpenChange, status = 'ready', error = null, failures = [], load = () => {} }: PickerProps & PropsLocale<'model'>) {
   const directory = useMemo(() => createSnapshotStore<ModelDirectoryState>({
     status, error, groups, failures, current, routable: true, pending: null,
   }), [])
   useEffect(() => { directory.update(state => { state.groups = groups; state.current = current; state.status = status; state.error = error; state.failures = failures }) }, [directory, groups, current, status, error, failures])
-  return <ModelSelect pickerOnly embedded={embedded} dialog={dialog} onOpenChange={onOpenChange} available locked={locked} directory={directory} load={load} recents={recents} recentText={recentText}
-    select={async selection => { select(selection); return true }} t={t} />
+  return <ModelSelect pickerOnly={pickerOnly} embedded={embedded} dialog={dialog} onOpenChange={onOpenChange} available locked={locked} directory={directory} load={load} recents={recents} recentText={recentText}
+    select={async selection => (await select(selection)) !== false} t={t} />
 }
