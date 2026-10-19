@@ -170,7 +170,7 @@ export function ModelSelect(
 
   useEffect(() => {
     if (open && (pane === 'model' || pane === 'all')) modelSearchRef.current?.focus()
-    if (open && !dialog && pane === 'model' && recents !== undefined) itemRefs.current[0]?.focus()
+    if (open && !dialog && (pane === 'root' || pane === 'model' && recents !== undefined)) itemRefs.current[0]?.focus()
   }, [open, pane])
 
   if (!available) return null

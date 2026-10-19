@@ -75,3 +75,7 @@ The independent `modelPickers.Picker` opens a themed searchable dialog with the 
 
 - Floating menus render outside scrolling panels, stay within the viewport and follow their trigger on scroll or resize. Search, reasoning controls and keyboard focus remain inside the open menu.
 - 浮动菜单移到滚动面板之外，按窗口边界定位，随滚动和窗口缩放跟随入口；搜索、思考强度与键盘焦点保持正常。
+
+0.1.16 keeps focus on the active menu pane when returning from search, including Escape dismissal.
+
+0.1.16 从搜索返回时保持焦点在当前菜单内，支持 Escape 逐层关闭。

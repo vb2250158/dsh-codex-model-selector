@@ -38,6 +38,12 @@ it('完整独立控件复用单行入口、模型菜单和强度滑条，保存�
   await waitFor(()=>expect(select).toHaveBeenCalledWith({provider:'api',model:'main',reasoningEffort:'high'}))
   expect(mainSelect).not.toHaveBeenCalled()
   expect(store.getSnapshot().current.model).toBe('main')
+  fireEvent.click(screen.getByRole('menuitem',{name:/模型/}))
+  fireEvent.click(screen.getByRole('menuitem',{name:'更多模型'}))
+  fireEvent.keyDown(screen.getByRole('searchbox'),{key:'Escape'})
+  fireEvent.keyDown(document.activeElement!,{key:'Escape'})
+  fireEvent.keyDown(document.activeElement!,{key:'Escape'})
+  expect(screen.queryByRole('menu')).toBeNull()
   recents.dispose()
 })
 it('独立补齐选择复用可见目录和常用记录，不切换会话模型', async()=>{

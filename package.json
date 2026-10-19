@@ -1,6 +1,6 @@
 {
   "name": "dsh-codex-model-selector",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "type": "module",
   "description": "Compact Codex-style model and reasoning selector for DSH",
   "license": "MIT",

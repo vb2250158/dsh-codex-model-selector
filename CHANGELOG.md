@@ -1,3 +1,8 @@
+## 0.1.16 (2026-10-19)
+
+- Keep keyboard focus in the menu when returning from model search, so Escape can back out and close the floating menu.
+- 从模型搜索返回时保留菜单焦点，使 Escape 能逐层返回并关闭浮层。
+
 ## 0.1.15 (2026-10-19)
 
 - Prevent model menus in narrow, scrolling side panels from clipping labels or search fields; preserve portal focus and outside-click dismissal.
