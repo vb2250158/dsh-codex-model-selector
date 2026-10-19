@@ -4,7 +4,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises'
 
 const result = await build({
   entryPoints: ['src/client.ts'], bundle: true, format: 'cjs', platform: 'browser', jsx: 'automatic', write: false,
-  external: ['react', 'react/jsx-runtime', '@deepseek-ai/*'],
+  external: ['react', 'react-dom', 'react/jsx-runtime', '@deepseek-ai/*'],
   plugins: [{ name: 'css-modules', setup(builder) {
     builder.onLoad({ filter: /\.module\.css$/ }, async args => {
       const result = transform({ filename: args.path, code: await readFile(args.path), cssModules: { pattern: 'codex-selector_[local]' } })

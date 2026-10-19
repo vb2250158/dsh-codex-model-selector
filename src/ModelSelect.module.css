@@ -337,3 +337,5 @@
 .root[data-menu-side="below"] .menu { top: calc(100% + 8px); bottom: auto; }
 .root[data-menu-side="above"] .menu { top: auto; bottom: calc(100% + 8px); }
 .embedded[data-menu-side] .menu { top: auto; bottom: auto; }
+
+.floating { position: fixed; right: auto; bottom: auto; z-index: 1000; }

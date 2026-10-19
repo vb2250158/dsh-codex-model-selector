@@ -70,3 +70,8 @@ The independent `modelPickers.Picker` opens a themed searchable dialog with the 
 
 - Menus choose the side with available viewport space and limit their height; a control in a top sidebar opens downward. Resizing recomputes placement.
 - 菜单按窗口剩余空间选择展开方向并限制高度；右侧顶部的控件向下展开，窗口缩放时重新计算。
+
+## 0.1.15
+
+- Floating menus render outside scrolling panels, stay within the viewport and follow their trigger on scroll or resize. Search, reasoning controls and keyboard focus remain inside the open menu.
+- 浮动菜单移到滚动面板之外，按窗口边界定位，随滚动和窗口缩放跟随入口；搜索、思考强度与键盘焦点保持正常。

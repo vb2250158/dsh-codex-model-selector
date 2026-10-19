@@ -1,3 +1,8 @@
+## 0.1.15 (2026-10-19)
+
+- Prevent model menus in narrow, scrolling side panels from clipping labels or search fields; preserve portal focus and outside-click dismissal.
+- 修复窄侧栏与滚动面板裁剪模型菜单，保留搜索、焦点与外部点击关闭行为。
+
 # 0.1.12
 
 独立补齐模型选择改用主题 Modal，直接展示搜索、常用模型和提供商分组。复用 ModelSelect 的过滤、标记及草稿选择逻辑；会话模型入口保持原交互。

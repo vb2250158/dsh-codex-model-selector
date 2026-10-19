@@ -9,14 +9,15 @@
  * card; the in-menu strip with Retry remains the catalog-load surface.
  */
 import {
-  useDeferredValue, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore,
+  useDeferredValue, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore,
   type KeyboardEvent, type FocusEvent,
 } from 'react'
+import { createPortal } from 'react-dom'
 import clsx from 'clsx'
 import type { ModelReasoningEffort, ModelSelection } from '@deepseek-ai/dsh-api-remotes/client'
 import {
   IconCheckOutlineRegular, IconChevronDownOutlineRegular, IconChevronRightOutlineRegular,
-  IconWarningOutlineRegular, Toast, MenuSurface, Modal, Input,
+  IconWarningOutlineRegular, Toast, MenuSurface, Modal, Input, useAnchoredPosition,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ModelSelectInjected } from '@deepseek-ai/dsh-client-ui-model-selection/client'
@@ -80,6 +81,10 @@ export function ModelSelect(
   const toastSeq = useRef(0)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  const floating = !dialog && !embedded
+  const position = useAnchoredPosition({ open: open && floating, anchorRef: triggerRef, panelRef: menuRef,
+    side: menuSide === 'above' ? 'top' : 'bottom', align: 'end', gap: 8, margin: 16 })
   const modelSearchRef = useRef<HTMLInputElement | null>(null)
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
   const id = useId()
@@ -143,23 +148,24 @@ export function ModelSelect(
     load()
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open || dialog) return
     const closeOutside = (event: MouseEvent): void => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+      if (!rootRef.current?.contains(event.target as Node) && !menuRef.current?.contains(event.target as Node)) setOpen(false)
     }
     const place = (): void => {
       const rect = triggerRef.current?.getBoundingClientRect()
       if (!rect) return
-      const above = rect.top - 12
-      const below = window.innerHeight - rect.bottom - 12
+      const above = rect.top - 24
+      const below = window.innerHeight - rect.bottom - 24
       setMenuSide(below > above ? 'below' : 'above')
       setMenuHeight(Math.max(0, Math.min(360, Math.max(above, below))))
     }
     place()
     window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
     document.addEventListener('mousedown', closeOutside)
-    return () => { document.removeEventListener('mousedown', closeOutside); window.removeEventListener('resize', place) }
+    return () => { document.removeEventListener('mousedown', closeOutside); window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true) }
   }, [open, dialog])
 
   useEffect(() => {
@@ -222,7 +228,7 @@ export function ModelSelect(
     if (dialog) return
     // Disabling a saving control can blur it without a new focus target.
     if (event.relatedTarget === null || dragging.current) return
-    if (event.relatedTarget instanceof Node && rootRef.current?.contains(event.relatedTarget)) return
+    if (event.relatedTarget instanceof Node && (rootRef.current?.contains(event.relatedTarget) || menuRef.current?.contains(event.relatedTarget))) return
     close()
   }
 
@@ -291,37 +297,11 @@ export function ModelSelect(
   }
 
   const Surface = dialog ? Modal : MenuSurface
-  return (
-    <div ref={rootRef} className={clsx(css.root, pickerOnly && css.settingsPicker, embedded && css.embedded)} data-menu-side={menuSide} onKeyDown={onRootKeyDown} onBlur={onBlur}>
-      <button
-        ref={triggerRef}
-        type="button"
-        className={css.trigger}
-        aria-label={triggerAria}
-        aria-haspopup={dialog ? 'dialog' : 'menu'}
-        aria-expanded={open}
-        aria-controls={open && !dialog ? `${id}-menu` : undefined}
-        title={speed?.visible && speed.tier === 'fast' ? `${triggerLabel} · 快速模式` : triggerLabel}
-        disabled={locked}
-        onClick={() => {
-          if (open) {
-            close()
-          } else {
-            show()
-          }
-        }}
-      >
-        {speed?.visible && speed.tier === 'fast' && <svg className={css.triggerFast} data-fast-mode="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7V2Z" /></svg>}
-        <span className={css.triggerLabel}>{routeLabel}</span>
-        {!pickerOnly && effortLabel !== undefined && <span className={css.triggerEffort}>{effortLabel}</span>}
-        <IconChevronDownOutlineRegular className={clsx(css.chevron, open && css.chevronOpen)} />
-      </button>
-
-      {open && (
+  const menu = (
         <Surface
-          {...dialog ? { open, onClose: () => close(true), title: recentText('title'), closeLabel: recentText('close'), contentClassName: css.dialogContent } : { id: `${id}-menu`, role: 'menu' }}
-          className={dialog ? css.dialog : css.menu}
-          style={dialog ? undefined : { maxHeight: menuHeight }}
+          {...dialog ? { open, onClose: () => close(true), title: recentText('title'), closeLabel: recentText('close'), contentClassName: css.dialogContent } : { id: `${id}-menu`, role: 'menu', ref: menuRef }}
+          className={dialog ? css.dialog : clsx(css.menu, floating && css.floating)}
+          style={dialog ? undefined : { maxHeight: menuHeight, ...(floating ? position ?? { visibility: 'hidden' } : {}) }}
           aria-label={t('menu.aria')}
           aria-busy={state.status === 'loading' || busy}
         >
@@ -467,7 +447,35 @@ export function ModelSelect(
 
 
         </Surface>
-      )}
+  )
+  return (
+    <div ref={rootRef} className={clsx(css.root, pickerOnly && css.settingsPicker, embedded && css.embedded)} data-menu-side={menuSide} onKeyDown={onRootKeyDown} onBlur={onBlur}>
+      <button
+        ref={triggerRef}
+        type="button"
+        className={css.trigger}
+        aria-label={triggerAria}
+        aria-haspopup={dialog ? 'dialog' : 'menu'}
+        aria-expanded={open}
+        aria-controls={open && !dialog ? `${id}-menu` : undefined}
+        title={speed?.visible && speed.tier === 'fast' ? `${triggerLabel} · 快速模式` : triggerLabel}
+        disabled={locked}
+        onClick={() => {
+          if (open) {
+            close()
+          } else {
+            show()
+          }
+        }}
+      >
+        {speed?.visible && speed.tier === 'fast' && <svg className={css.triggerFast} data-fast-mode="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7V2Z" /></svg>}
+        <span className={css.triggerLabel}>{routeLabel}</span>
+        {!pickerOnly && effortLabel !== undefined && <span className={css.triggerEffort}>{effortLabel}</span>}
+        <IconChevronDownOutlineRegular className={clsx(css.chevron, open && css.chevronOpen)} />
+      </button>
+
+      {open && (floating ? createPortal(menu, document.body) : menu)}
+
       {toast !== null && (
         <Toast
           key={toast.seq}
