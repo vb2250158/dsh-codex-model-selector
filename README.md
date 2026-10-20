@@ -79,3 +79,5 @@ The independent `modelPickers.Picker` opens a themed searchable dialog with the 
 0.1.16 keeps focus on the active menu pane when returning from search, including Escape dismissal.
 
 0.1.16 从搜索返回时保持焦点在当前菜单内，支持 Escape 逐层关闭。
+
+Client integration tests use real Cordis plugin scopes. Set DSH_HARNESS_ROOT to a built DSH checkout to test its vendored Cordis runtime; otherwise tests use the declared development dependency.

@@ -6,7 +6,7 @@ import { cssText } from './ModelSelect.module.css'
 import { RecentModels } from './recent-models.ts'
 import { recentLocales } from './recent-locales.ts'
 
-export const inject = ['slots', 'sessions', 'modelDirectories', 'locale']
+export const inject = ['slots', 'sessions', 'modelDirectories', 'remote', 'remote.session', 'locale']
 
 export function apply(ctx) {
   let storage: Storage | undefined

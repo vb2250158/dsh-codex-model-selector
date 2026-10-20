@@ -1,3 +1,8 @@
+## 0.1.17 (2026-10-20)
+
+- Declare the session Remote namespace used by the rc.2 model directory resolver; cover the model seat with real Cordis plugin scopes.
+- 声明 rc.2 模型目录所需的会话 Remote 注入，修复模型选择入口报错，并用真实 Cordis 插件作用域验证。
+
 ## 0.1.16 (2026-10-19)
 
 - Keep keyboard focus in the menu when returning from model search, so Escape can back out and close the floating menu.
