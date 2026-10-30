@@ -2,6 +2,8 @@
 
 - Add a public catalog picker for independent plugin settings, sharing the chat model chooser, recent models, search, provider groups, and locale. Selection returns to the caller without changing the chat model.
 - 新增独立设置的公开目录选择组件，与聊天共用模型选择、常用记录、搜索、提供商分组和语言；选择结果交回调用插件保存。
+- Keep an open menu aligned when asynchronous page content moves its trigger.
+- 页面内容异步展开后，已打开的模型菜单继续贴合触发按钮。
 
 ## 0.1.17 (2026-10-20)
 

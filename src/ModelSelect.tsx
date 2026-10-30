@@ -10,14 +10,15 @@
  */
 import {
   useDeferredValue, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore,
-  type KeyboardEvent, type FocusEvent,
+  type KeyboardEvent, type FocusEvent, type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
 import clsx from 'clsx'
+import { autoUpdate, computePosition, offset, shift } from '@floating-ui/dom'
 import type { ModelReasoningEffort, ModelSelection } from '@deepseek-ai/dsh-api-remotes/client'
 import {
   IconCheckOutlineRegular, IconChevronDownOutlineRegular, IconChevronRightOutlineRegular,
-  IconWarningOutlineRegular, Toast, MenuSurface, Modal, Input, useAnchoredPosition,
+  IconWarningOutlineRegular, Toast, MenuSurface, Modal, Input,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ModelSelectInjected } from '@deepseek-ai/dsh-client-ui-model-selection/client'
@@ -83,8 +84,27 @@ export function ModelSelect(
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const floating = !dialog && !embedded
-  const position = useAnchoredPosition({ open: open && floating, anchorRef: triggerRef, panelRef: menuRef,
-    side: menuSide === 'above' ? 'top' : 'bottom', align: 'end', gap: 8, margin: 16 })
+  const [position, setPosition] = useState<CSSProperties | null>(null)
+  useLayoutEffect(() => {
+    const anchor = triggerRef.current, panel = menuRef.current
+    if (!available || !open || !floating || !anchor || !panel) { setPosition(null); return }
+    let active = true, revision = 0
+    const update = (): void => {
+      const rect = anchor.getBoundingClientRect()
+      const above = rect.top - 24, below = window.innerHeight - rect.bottom - 24
+      const side = below > above ? 'below' : 'above'
+      setMenuSide(side)
+      setMenuHeight(Math.max(0, Math.min(360, Math.max(above, below))))
+      const request = ++revision
+      void computePosition(anchor, panel, { strategy: 'fixed', placement: side === 'above' ? 'top-end' : 'bottom-end',
+        middleware: [offset(8), shift({ padding: 16, crossAxis: true })],
+      }).then(({ x, y }) => { if (active && request === revision) setPosition({ left: x, top: y }) })
+    }
+    const cleanup = autoUpdate(anchor, panel, update, {
+      elementResize: typeof ResizeObserver !== 'undefined', layoutShift: typeof IntersectionObserver !== 'undefined', animationFrame: false,
+    })
+    return () => { active = false; cleanup() }
+  }, [open, floating, available])
   const modelSearchRef = useRef<HTMLInputElement | null>(null)
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
   const id = useId()
@@ -149,7 +169,7 @@ export function ModelSelect(
   }
 
   useLayoutEffect(() => {
-    if (!open || dialog) return
+    if (!available || !open || dialog) return
     const closeOutside = (event: MouseEvent): void => {
       if (!rootRef.current?.contains(event.target as Node) && !menuRef.current?.contains(event.target as Node)) setOpen(false)
     }
@@ -161,17 +181,21 @@ export function ModelSelect(
       setMenuSide(below > above ? 'below' : 'above')
       setMenuHeight(Math.max(0, Math.min(360, Math.max(above, below))))
     }
-    place()
-    window.addEventListener('resize', place)
-    window.addEventListener('scroll', place, true)
+    if (!floating) {
+      place()
+      window.addEventListener('resize', place)
+      window.addEventListener('scroll', place, true)
+    }
     document.addEventListener('mousedown', closeOutside)
     return () => { document.removeEventListener('mousedown', closeOutside); window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true) }
-  }, [open, dialog])
+  }, [open, dialog, floating, available])
 
+  const positioned = !floating || position !== null
   useEffect(() => {
+    if (!positioned) return
     if (open && (pane === 'model' || pane === 'all')) modelSearchRef.current?.focus()
     if (open && !dialog && (pane === 'root' || pane === 'model' && recents !== undefined)) itemRefs.current[0]?.focus()
-  }, [open, pane])
+  }, [open, pane, positioned])
 
   if (!available) return null
 

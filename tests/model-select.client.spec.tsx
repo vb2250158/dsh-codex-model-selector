@@ -57,11 +57,12 @@ describe('ModelSelect reasoning effort', () => {
     { current: { provider: 'deepseek-official', model: 'deepseek-v4-flash' }, label: 'DeepSeek' },
     { current: { provider: 'deepseek-official', model: 'unlisted' }, label: 'DeepSeek' },
     { current: { provider: 'unlisted-provider', model: 'unlisted' }, label: 'unlisted-provider' },
-  ])('shows the selected provider $label in the compact card', ({ current, label }) => {
+  ])('shows the selected provider $label in the compact card', async ({ current, label }) => {
     render(<ModelSelect locked={false} available directory={createSnapshotStore(state({ current }))} load={vi.fn()} select={vi.fn()} t={t} />)
     const trigger = screen.getByRole('button', { name: /选择模型/ })
     expect(trigger.textContent).toContain(`${current.model === 'deepseek-v4-flash' ? 'DeepSeek-V4-Flash' : current.model} · ${label}`)
     fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+    await screen.findByRole('menu')
     const provider = screen.getByTitle(label)
     expect(provider.textContent).toBe(label)
     expect(provider.closest('[role="menuitem"]')).toBeTruthy()
@@ -86,6 +87,7 @@ describe('ModelSelect reasoning effort', () => {
     })
     render(<ModelSelect locked={false} available directory={directory} load={vi.fn()} select={select} t={t} />)
     fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+    await screen.findByRole('menu')
     const slider = screen.getByRole('slider')
     fireEvent.pointerDown(slider)
     fireEvent.change(slider, { target: { value: '0' } })
@@ -112,6 +114,7 @@ describe('ModelSelect reasoning effort', () => {
     expect(trigger.textContent).toContain('DeepSeek-V4-Flash')
     expect(trigger.textContent).toContain('High')
     fireEvent.click(trigger)
+    await screen.findByRole('menu')
     const fast = await screen.findByRole('button', { name: '快速模式：未开启' })
     expect(fast.querySelector('svg path')).toBeTruthy()
     fireEvent.click(fast)
@@ -127,6 +130,7 @@ describe('ModelSelect reasoning effort', () => {
     })
     render(<ModelSelect locked={false} available directory={directory} load={vi.fn()} select={select} t={t} />)
     fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+    await screen.findByRole('menu')
     const slider = screen.getByRole('slider', { name: '推理等级' })
     expect(slider.getAttribute('max')).toBe('2')
     fireEvent.change(slider, { target: { value: '2' } })
@@ -137,17 +141,18 @@ describe('ModelSelect reasoning effort', () => {
     expect(select).toHaveBeenLastCalledWith({ provider: 'deepseek-official', model: 'deepseek-v4-flash', reasoningEffort: 'high' })
   })
 
-  it.each(['High', 'DeepSeek-V4-Flash'])('opens models from either heading line: %s', label => {
+  it.each(['High', 'DeepSeek-V4-Flash'])('opens models from either heading line: %s', async label => {
     const directory = createSnapshotStore<ModelDirectoryState>(state())
     render(<ModelSelect locked={false} available directory={directory} load={vi.fn()} select={vi.fn()} t={t} />)
     fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+    await screen.findByRole('menu')
     const heading = screen.getByRole('menuitem', { name: /模型/ })
     fireEvent.click(Array.from(heading.querySelectorAll('span')).find(span => span.textContent === label)!)
     expect(screen.getByRole('menuitemradio', { name: 'DeepSeek-V4-Flash' })).toBeTruthy()
     expect(screen.queryByRole('menuitemradio', { name: 'Max' })).toBeNull()
   })
 
-  it('offers provider default only when the adapter does not configure a model default', () => {
+  it('offers provider default only when the adapter does not configure a model default', async () => {
     const directory = createSnapshotStore(state({
       groups: [{
         id: 'provider',
@@ -172,11 +177,12 @@ describe('ModelSelect reasoning effort', () => {
     fireEvent.click(screen.getByRole('button', {
       name: '选择模型，当前 Model，推理等级 Default',
     }))
+    await screen.findByRole('menu')
     expect(screen.getByRole('slider').getAttribute('max')).toBe('1')
     expect(screen.getByRole('slider').getAttribute('aria-valuetext')).toBe('Default')
   })
 
-  it('shows the durable model id when the catalog has no matching display name', () => {
+  it('shows the durable model id when the catalog has no matching display name', async () => {
     const directory = createSnapshotStore(state({
       current: { provider: 'deepseek-official', model: 'removed-model' },
     }))
@@ -193,6 +199,7 @@ describe('ModelSelect reasoning effort', () => {
     const trigger = screen.getByRole('button', { name: '选择模型，当前 deepseek-official/removed-model' })
     expect(trigger.textContent).toContain('removed-model · DeepSeek')
     fireEvent.click(trigger)
+    await screen.findByRole('menu')
     expect(screen.queryByRole('menuitem', { name: /推理等级/ })).toBeNull()
     fireEvent.click(screen.getByRole('menuitem', { name: /模型/ }))
     expect(screen.queryByRole('menuitemradio', { name: 'removed-model' })).toBeNull()
@@ -200,7 +207,7 @@ describe('ModelSelect reasoning effort', () => {
     expect(screen.queryByText('Fast catalog description')).toBeNull()
   })
 
-  it('filters loaded provider groups by model or provider name', () => {
+  it('filters loaded provider groups by model or provider name', async () => {
     const directory = createSnapshotStore(state({
       groups: [{
         id: 'openai',
@@ -222,6 +229,7 @@ describe('ModelSelect reasoning effort', () => {
     />)
 
     fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+    await screen.findByRole('menu')
     fireEvent.click(screen.getByRole('menuitem', { name: /模型/ }))
     const search = screen.getByRole('searchbox', { name: '搜索提供商或模型' })
     expect(document.activeElement).toBe(search)
@@ -287,6 +295,7 @@ describe('ModelSelect reasoning effort', () => {
     />)
 
     fireEvent.click(screen.getByRole('button', { name: /选择模型|当前/ }))
+    await screen.findByRole('menu')
     fireEvent.click(screen.getByRole('menuitem', { name: /模型/ }))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /DeepSeek-V4-Pro/ }))
     const toast = await screen.findByRole('alert')
@@ -295,7 +304,7 @@ describe('ModelSelect reasoning effort', () => {
     expect(screen.queryByRole('button', { name: '重试' })).toBeNull()
   })
 
-  it('renders no Agent-bound control for an addressed subagent session', () => {
+  it('renders no Agent-bound control for an addressed subagent session', async () => {
     const load = vi.fn()
     render(<ModelSelect
       locked={false}

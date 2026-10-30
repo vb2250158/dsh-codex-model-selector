@@ -21,6 +21,7 @@ it('完整独立控件复用单行入口、模型菜单和强度滑条，保存�
   expect(trigger.textContent).toContain('Low')
   vi.spyOn(trigger,'getBoundingClientRect').mockReturnValue({top:40,bottom:68,left:0,right:200,width:200,height:28,x:0,y:40,toJSON:()=>({})})
   fireEvent.click(trigger)
+  await screen.findByRole('menu')
   expect(trigger.parentElement?.getAttribute('data-menu-side')).toBe('below')
   expect(screen.getByRole('menu').style.maxHeight).toBe('360px')
   vi.spyOn(trigger,'getBoundingClientRect').mockReturnValue({top:700,bottom:728,left:0,right:200,width:200,height:28,x:0,y:700,toJSON:()=>({})})

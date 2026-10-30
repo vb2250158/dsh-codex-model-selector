@@ -51,17 +51,18 @@ it('keeps choices when usage fails and rejects malformed rows', async () => {
   expect(recent.getSnapshot()).toMatchObject({ unavailable: true, loading: false, routes: [route('a')] })
 })
 
-function mount(recent: RecentModels, select = vi.fn(async () => true), pickerOnly = false) {
+async function mount(recent: RecentModels, select = vi.fn(async () => true), pickerOnly = false) {
   const groups = Array.from({ length: 8 }, (_, i) => ({ id: `p${i}`, name: `Provider ${i}`, models: [{ id: 'same', name: 'Same Model' }] }))
   render(<ModelSelect directory={createSnapshotStore({ current: { provider: 'other', model: 'other' }, groups, status: 'ready', routable: true, failures: [], error: null })} available locked={false} load={vi.fn()} select={select} recents={recent} pickerOnly={pickerOnly} t={key => (zh as Record<string, string>)[key] ?? key} />)
   fireEvent.click(screen.getByRole('button', { name: /选择模型/ }))
+  await screen.findByRole('menu')
   if (!pickerOnly) fireEvent.click(screen.getByRole('menuitem'))
   return select
 }
 
 it('shows six catalog matches with providers and opens the searchable complete catalog', async () => {
   const recent = new RecentModels(undefined, api([route('hidden'), ...Array.from({ length: 8 }, (_, i) => route(`p${i}`))]), () => now)
-  mount(recent)
+  await mount(recent)
   await waitFor(() => expect(screen.getAllByRole('menuitemradio')).toHaveLength(6))
   expect(screen.getAllByRole('menuitemradio')[0].textContent).toContain('Provider 0')
   expect(screen.queryByRole('searchbox')).toBeNull()
@@ -75,7 +76,7 @@ it('shows six catalog matches with providers and opens the searchable complete c
 
 it.each([{ accepted: true, draft: false, count: 1 }, { accepted: false, draft: false, count: 0 }, { accepted: true, draft: true, count: 0 }])('records only accepted session choices: $accepted / draft $draft', async ({ accepted, draft, count }) => {
   const recent = new RecentModels(undefined, api([]), () => now)
-  const select = mount(recent, vi.fn(async () => accepted), draft)
+  const select = await mount(recent, vi.fn(async () => accepted), draft)
   fireEvent.click(screen.getByRole('menuitem', { name: '更多模型' }))
   fireEvent.click(screen.getAllByRole('menuitemradio')[0])
   await waitFor(() => expect(select).toHaveBeenCalledOnce())

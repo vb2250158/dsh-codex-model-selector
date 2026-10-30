@@ -7,7 +7,9 @@
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
-    "./model-picker": { "types": "./lib/model-picker-types.d.ts" },
+    "./model-picker": {
+      "types": "./lib/model-picker-types.d.ts"
+    },
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "4.0.5",
+    "@floating-ui/dom": "1.8.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.0",
     "clsx": "^2.1.1",
@@ -63,16 +66,17 @@
     "docs",
     "locale",
     "icon.svg",
-    "ICON_LICENSE.txt"
+    "ICON_LICENSE.txt",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "peerDependencies": {
     "@deepseek-ai/cordis": ">=4.0.5-alpha.1 <5.0.0",
-    "@deepseek-ai/dsh-client-ui-model-selection": ">=0.2.1-alpha.1 <0.3.0",
-    "react": "^18.2.0",
     "@deepseek-ai/dsh-api-remotes": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-api-session-controller": ">=0.2.1-alpha.1 <0.3.0",
+    "@deepseek-ai/dsh-client-ui-model-selection": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-ui-renderer": ">=0.2.1-alpha.1 <0.3.0",
-    "@deepseek-ai/dsh-client-ui-session": ">=0.2.1-alpha.1 <0.3.0"
+    "@deepseek-ai/dsh-client-ui-session": ">=0.2.1-alpha.1 <0.3.0",
+    "react": "^18.2.0"
   },
   "icon": "./icon.svg"
 }
