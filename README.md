@@ -1,5 +1,13 @@
 # DSH Codex Model Selector
 
+## 0.1.18
+
+智能规则等独立设置可通过公开 `modelPickers.CatalogPicker` 复用聊天模型选择器，支持常用模型、搜索和提供商分组。调用插件提供目录和保存回调；组件不切换聊天模型。
+
+Independent settings can use `modelPickers.CatalogPicker` to share the chat model chooser, recent models, search, and provider groups. The caller supplies the catalog and save callback; the picker preserves the chat model selection.
+
+接入字段与保存约定见 [模型选择组件 API / Picker API](docs/model-picker.md)。
+
 This release requires DSH 0.2.1-alpha.1 or a compatible 0.2 release. See [compatibility details](docs/dsh-0.2-compatibility.md).
 
 ## 0.1.6

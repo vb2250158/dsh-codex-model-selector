@@ -1,3 +1,8 @@
+## 0.1.18 (2026-10-30)
+
+- Add a public catalog picker for independent plugin settings, sharing the chat model chooser, recent models, search, provider groups, and locale. Selection returns to the caller without changing the chat model.
+- 新增独立设置的公开目录选择组件，与聊天共用模型选择、常用记录、搜索、提供商分组和语言；选择结果交回调用插件保存。
+
 ## 0.1.17 (2026-10-20)
 
 - Declare the session Remote namespace used by the rc.2 model directory resolver; cover the model seat with real Cordis plugin scopes.

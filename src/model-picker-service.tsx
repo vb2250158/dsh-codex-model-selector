@@ -1,21 +1,11 @@
 /** Shared chooser for independent settings; catalogs and recents keep their existing owners. */
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
-import type { ComponentType } from 'react'
-import type { ModelSelection } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ModelPickerService, CatalogPickerProps, IndependentPickerProps } from './model-picker-types.js'
 import type { ModelDirectoryState } from '@deepseek-ai/dsh-client-ui-model-selection/client'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { SettingsModelPicker } from './SettingsModelPicker.tsx'
 import type { RecentModels } from './recent-models.ts'
 import type { RecentText } from './recent-locales.ts'
-
-/** Independent selection never invokes the session's selectModel operation. */
-export interface IndependentPickerProps {
-  onOpenChange?: (open: boolean) => void
-  sessionId: string
-  current: ModelSelection | null
-  locked: boolean
-  select: (selection: ModelSelection) => void | boolean | Promise<void | boolean>
-}
 
 interface PickerContext {
   locale: { bind(ns: 'model'): PropsLocale<'model'>['t'] }
@@ -26,7 +16,7 @@ interface PickerContext {
 }
 
 /** Create the public picker face with the selector's shared recent-model store. */
-export function createModelPickerService(ctx: PickerContext, recents: RecentModels, recentText: RecentText): { Picker: ComponentType<IndependentPickerProps>; Control: ComponentType<IndependentPickerProps> } {
+export function createModelPickerService(ctx: PickerContext, recents: RecentModels, recentText: RecentText): ModelPickerService {
   const t = ctx.locale.bind('model')
   function View({ sessionId, current, locked, select, onOpenChange, full = false }: IndependentPickerProps & { full?: boolean }) {
     const directory = useMemo(() => ctx.modelDirectories.directoryFor(sessionId), [sessionId])
@@ -38,5 +28,8 @@ export function createModelPickerService(ctx: PickerContext, recents: RecentMode
   }
   function Picker(props: IndependentPickerProps) { return <View {...props} /> }
   function Control(props: IndependentPickerProps) { return <View {...props} full /> }
-  return { Picker, Control }
+  function CatalogPicker(props: CatalogPickerProps) {
+    return <SettingsModelPicker {...props} recents={recents} recentText={recentText} t={t} pickerOnly />
+  }
+  return { Picker, Control, CatalogPicker }
 }

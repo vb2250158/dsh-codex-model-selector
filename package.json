@@ -1,12 +1,13 @@
 {
   "name": "dsh-codex-model-selector",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "type": "module",
   "description": "Compact Codex-style model and reasoning selector for DSH",
   "license": "MIT",
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
+    "./model-picker": { "types": "./lib/model-picker-types.d.ts" },
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
@@ -65,6 +66,9 @@
     "ICON_LICENSE.txt"
   ],
   "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.5-alpha.1 <5.0.0",
+    "@deepseek-ai/dsh-client-ui-model-selection": ">=0.2.1-alpha.1 <0.3.0",
+    "react": "^18.2.0",
     "@deepseek-ai/dsh-api-remotes": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-api-session-controller": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-ui-renderer": ">=0.2.1-alpha.1 <0.3.0",

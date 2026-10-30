@@ -1,6 +1,6 @@
 import { build } from 'esbuild'
 import { transform } from 'lightningcss'
-import { readFile, mkdir, writeFile } from 'node:fs/promises'
+import { readFile, mkdir, writeFile, copyFile } from 'node:fs/promises'
 
 const result = await build({
   entryPoints: ['src/client.ts'], bundle: true, format: 'cjs', platform: 'browser', jsx: 'automatic', write: false,
@@ -16,3 +16,4 @@ const result = await build({
 await mkdir('lib', { recursive: true })
 await writeFile('lib/client.js', `window.__ModuleLoader__.load({id:'dsh-codex-model-selector',factory:(require)=>{var module={exports:{}};var exports=module.exports;\n${result.outputFiles[0].text}\nreturn module.exports;}});\n`)
 await build({ entryPoints: ['src/index.ts'], outfile: 'lib/index.js', format: 'esm', platform: 'node' })
+await copyFile('src/model-picker-types.d.ts', 'lib/model-picker-types.d.ts')

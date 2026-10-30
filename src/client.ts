@@ -1,3 +1,4 @@
+export type { CatalogPickerProps, IndependentPickerProps, ModelPickerService } from './model-picker-types.js'
 /** Replace only the composer model seat and reuse the official directory. */
 import { createModelPickerService } from './model-picker-service.tsx'
 import { ModelSelect } from './ModelSelect.tsx'
